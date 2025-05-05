@@ -1,16 +1,6 @@
-import { TelegramAuth } from './auth.js';
-
-document.addEventListener('DOMContentLoaded', async () => {
-  const user = await TelegramAuth.init();
-  
-  if (user) {
-    updateUI(user);
-    initApp();
-  } else {
-    showAuthError();
-  }
-
-  const tabLinks = document.querySelectorAll('.nav-item');
+document.addEventListener('DOMContentLoaded', function() {
+    // Переключение вкладок
+    const tabLinks = document.querySelectorAll('.nav-item');
     const tabContents = document.querySelectorAll('.tab-content');
     
     tabLinks.forEach(link => {
@@ -43,56 +33,72 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 });
 
-function updateUI(user) {
-  // Обновление шапки
-  document.getElementById('user-balance').textContent = user.balance;
-  
-  // Обновление профиля
-  if (user.avatar_url) {
-    document.querySelector('.avatar').innerHTML = `
-      <img src="${user.avatar_url}" alt="Profile" class="avatar-img">
-    `;
-  }
-  
-  document.querySelector('.username').textContent = user.username || `ID: ${user.tg_id}`;
-}
+import { supabase } from './supabase'
 
-// Инициализация приложения
+// Инициализация Telegram WebApp
+const tg = window.Telegram.WebApp
+tg.expand()
+
+// Элементы DOM
+const userBalance = document.getElementById('user-balance')
+const profileBtn = document.getElementById('profile-btn')
+const profilePic = document.querySelector('.profile-pic')
+const usernameElement = document.querySelector('.username')
+const avatarElement = document.querySelector('.avatar')
+
+// Авторизация и загрузка данных
 async function initApp() {
-    console.log('Initializing app...');
+  if (tg.initDataUnsafe.user) {
+    const { id, first_name, last_name, photo_url } = tg.initDataUnsafe.user
+    const username = first_name + (last_name ? ` ${last_name}` : '')
     
-    // Проверяем Telegram WebApp
-    if (window.Telegram?.WebApp) {
-      const tg = window.Telegram.WebApp;
-      tg.expand();
-      tg.ready();
-      
-      console.log('Telegram theme:', tg.themeParams);
-      document.body.classList.add(tg.colorScheme);
-    }
-  
-    // Авторизация
-    try {
-      const authResult = await TelegramAuth.init();
-      if (authResult?.user) {
-        updateUI(authResult.user);
-        setupTabs();
-      } else {
-        showError('Авторизация не удалась');
-      }
-    } catch (error) {
-      console.error('Init error:', error);
-      showError('Ошибка инициализации');
+    // Сохраняем или обновляем пользователя
+    const { data: user, error } = await supabase
+      .from('users')
+      .upsert(
+        { 
+          tg_id: id,
+          username,
+          avatar_url: photo_url,
+          last_login: new Date()
+        },
+        { onConflict: 'tg_id' }
+      )
+      .select()
+    
+    if (!error && user) {
+      updateUI(user[0])
+      updateBalance(user[0].tg_id)
     }
   }
-  
-  // Запуск приложения
-  if (document.readyState === 'complete') {
-    initApp();
-  } else {
-    document.addEventListener('DOMContentLoaded', initApp);
-  }
-
-function showAuthError() {
-  alert('Для использования приложения требуется авторизация через Telegram');
 }
+
+// Обновление интерфейса
+function updateUI(user) {
+  // Шапка
+  userBalance.textContent = user.balance || '0'
+  
+  // Профиль
+  usernameElement.textContent = user.username || `ID: ${user.tg_id}`
+  
+  if (user.avatar_url) {
+    avatarElement.innerHTML = `<img src="${user.avatar_url}" alt="Profile" class="avatar-img">`
+    profilePic.innerHTML = `<img src="${user.avatar_url}" alt="Profile" class="avatar-img-small">`
+  }
+}
+
+// Получение баланса
+async function updateBalance(userId) {
+  const { data, error } = await supabase
+    .from('balances')
+    .select('amount')
+    .eq('user_id', userId)
+    .single()
+  
+  if (!error && data) {
+    userBalance.textContent = data.amount
+  }
+}
+
+// Инициализация при загрузке
+document.addEventListener('DOMContentLoaded', initApp)

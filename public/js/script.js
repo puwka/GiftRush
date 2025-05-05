@@ -317,126 +317,212 @@ async function openCaseDetails(caseId) {
   }
 }
 
-// Функция открытия кейса
 async function openCase(caseId, price) {
-  try {
-    // Проверяем авторизацию
-    if (!tg.initDataUnsafe.user?.id) {
-      tg.showAlert('Для открытия кейсов нужно авторизоваться')
-      return
-    }
-
-    // Проверяем баланс
-    const userId = tg.initDataUnsafe.user.id
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('balance')
-      .eq('tg_id', userId)
-      .single()
-    
-    if (userError) throw userError
-    if (user.balance < price) {
-      tg.showAlert('Недостаточно средств на балансе')
-      return
-    }
-    
-    // Выбираем случайный предмет
-    const { data: items, error: itemsError } = await supabase
-      .from('case_items')
-      .select('*')
-      .eq('case_id', caseId)
-    
-    if (itemsError) throw itemsError
-    
-    // Алгоритм выбора предмета
-    const totalProbability = items.reduce((sum, item) => sum + item.probability, 0)
-    let random = Math.random() * totalProbability
-    let selectedItem = null
-    
-    for (const item of items) {
-      if (random < item.probability) {
-        selectedItem = item
-        break
+    try {
+      // Проверяем авторизацию
+      if (!tg.initDataUnsafe.user?.id) {
+        tg.showAlert('Для открытия кейсов нужно авторизоваться')
+        return
       }
-      random -= item.probability
-    }
-    
-    if (!selectedItem) selectedItem = items[0]
-    
-    // Обновляем баланс
-    const newBalance = user.balance - price + selectedItem.value
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({ balance: newBalance })
-      .eq('tg_id', userId)
-    
-    if (updateError) throw updateError
-    
-    // Записываем транзакции
-    await supabase
-      .from('transactions')
-      .insert([
-        {
-          user_id: userId,
-          amount: -price,
-          type: 'case_open',
-          description: `Открытие кейса "${caseId}"`
-        },
-        {
-          user_id: userId,
-          amount: selectedItem.value,
-          type: 'prize',
-          description: `Выигрыш: ${selectedItem.name} (${selectedItem.rarity})`
+  
+      // Проверяем баланс
+      const userId = tg.initDataUnsafe.user.id
+      const { data: user, error: userError } = await supabase
+        .from('users')
+        .select('balance')
+        .eq('tg_id', userId)
+        .single()
+      
+      if (userError) throw userError
+      if (user.balance < price) {
+        tg.showAlert('Недостаточно средств на балансе')
+        return
+      }
+      
+      // Получаем предметы для рулетки
+      const { data: items, error: itemsError } = await supabase
+        .from('case_items')
+        .select('*')
+        .eq('case_id', caseId)
+      
+      if (itemsError) throw itemsError
+      
+      // Подготавливаем рулетку
+      prepareRoulette(items)
+      
+      // Блокируем кнопку открытия
+      const openBtn = document.getElementById('open-case-btn')
+      openBtn.disabled = true
+      openBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Открытие...'
+      
+      // Алгоритм выбора предмета
+      const totalProbability = items.reduce((sum, item) => sum + item.probability, 0)
+      let random = Math.random() * totalProbability
+      let selectedItem = null
+      
+      for (const item of items) {
+        if (random < item.probability) {
+          selectedItem = item
+          break
         }
-      ])
-    
-    // Записываем открытие кейса
-    await supabase
-      .from('opened_cases')
-      .insert({
-        user_id: userId,
-        case_id: caseId,
-        prize_value: selectedItem.value,
-        prize_description: selectedItem.name,
-        prize_rarity: selectedItem.rarity
+        random -= item.probability
+      }
+      
+      if (!selectedItem) selectedItem = items[0]
+      
+      // Запускаем анимацию рулетки
+      startRouletteAnimation(items, selectedItem, async () => {
+        // После завершения анимации
+        
+        // Обновляем баланс
+        const newBalance = user.balance - price + selectedItem.value
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({ balance: newBalance })
+          .eq('tg_id', userId)
+        
+        if (updateError) throw updateError
+        
+        // Записываем транзакции
+        await supabase
+          .from('transactions')
+          .insert([
+            {
+              user_id: userId,
+              amount: -price,
+              type: 'case_open',
+              description: `Открытие кейса "${caseId}"`
+            },
+            {
+              user_id: userId,
+              amount: selectedItem.value,
+              type: 'prize',
+              description: `Выигрыш: ${selectedItem.name} (${selectedItem.rarity})`
+            }
+          ])
+        
+        // Записываем открытие кейса
+        await supabase
+          .from('opened_cases')
+          .insert({
+            user_id: userId,
+            case_id: caseId,
+            prize_value: selectedItem.value,
+            prize_description: selectedItem.name,
+            prize_rarity: selectedItem.rarity
+          })
+        
+        // Обновляем UI
+        userBalance.textContent = newBalance
+        statBalance.textContent = newBalance
+        
+        // Показываем результат
+        showPrize(selectedItem)
+        
+        // Разблокируем кнопку
+        openBtn.disabled = false
+        openBtn.innerHTML = `Открыть за <span id="case-open-price">${price}</span> <i class="fas fa-coins"></i>`
       })
-    
-    // Обновляем UI
-    userBalance.textContent = newBalance
-    statBalance.textContent = newBalance
-    
-    // Показываем результат
-    showPrize(selectedItem)
-  } catch (error) {
-    console.error('Ошибка открытия кейса:', error)
-    tg.showAlert('Произошла ошибка при открытии кейса')
+    } catch (error) {
+      console.error('Ошибка открытия кейса:', error)
+      tg.showAlert('Произошла ошибка при открытии кейса')
+      
+      // Разблокируем кнопку в случае ошибки
+      const openBtn = document.getElementById('open-case-btn')
+      openBtn.disabled = false
+      openBtn.innerHTML = `Открыть за <span id="case-open-price">${price}</span> <i class="fas fa-coins"></i>`
+    }
   }
-}
+  
+  // Подготовка рулетки
+  function prepareRoulette(items) {
+    const rouletteTrack = document.getElementById('roulette-track')
+    rouletteTrack.innerHTML = ''
+    
+    // Создаем дубликаты элементов для бесконечной прокрутки
+    const itemsToShow = [...items, ...items, ...items]
+    
+    itemsToShow.forEach((item, index) => {
+      const itemElement = document.createElement('div')
+      itemElement.className = 'roulette-item'
+      itemElement.innerHTML = `
+        <img src="${item.image_url || 'https://via.placeholder.com/40'}" alt="${item.name}">
+        <div class="roulette-item-name">${item.name}</div>
+        <div class="roulette-item-value">${item.value}</div>
+      `
+      rouletteTrack.appendChild(itemElement)
+    })
+  }
+  
+  // Анимация рулетки
+  function startRouletteAnimation(items, selectedItem, callback) {
+    const rouletteTrack = document.getElementById('roulette-track')
+    const itemWidth = 100 // Ширина элемента + margin
+    const centerPosition = window.innerWidth / 2 - itemWidth / 2
+    
+    // Находим индекс выбранного элемента в середине массива
+    const selectedIndex = items.length * 1 + items.findIndex(item => item.id === selectedItem.id)
+    const stopPosition = -(selectedIndex * itemWidth - centerPosition)
+    
+    // Устанавливаем начальную позицию
+    rouletteTrack.style.transitionDuration = '0s'
+    rouletteTrack.style.transform = 'translateX(0)'
+    
+    // Даем время на отрисовку
+    setTimeout(() => {
+      // Быстрая прокрутка
+      rouletteTrack.style.transitionDuration = '5s'
+      rouletteTrack.style.transform = `translateX(${-items.length * itemWidth * 2}px)`
+      
+      // После быстрой прокрутки - замедление
+      setTimeout(() => {
+        rouletteTrack.style.transitionDuration = '3s'
+        rouletteTrack.style.setProperty('--stop-position', `${stopPosition}px`)
+        rouletteTrack.style.transform = `translateX(var(--stop-position))`
+        
+        // Подсвечиваем выбранный элемент
+        setTimeout(() => {
+          const allItems = document.querySelectorAll('.roulette-item')
+          allItems.forEach(item => item.classList.remove('highlighted'))
+          
+          const centerItem = document.elementFromPoint(centerPosition + itemWidth/2, 100)
+          if (centerItem && centerItem.closest('.roulette-item')) {
+            centerItem.closest('.roulette-item').classList.add('highlighted')
+          }
+          
+          // Вызываем callback после завершения анимации
+          setTimeout(callback, 500)
+        }, 2800)
+      }, 5000)
+    }, 50)
+  }
 
 // Показ выигрыша
 function showPrize(item) {
   const prizeHtml = `
-    <div class="prize-card rarity-${item.rarity}">
-      <div class="prize-image">
-        <img src="${item.image_url || 'https://via.placeholder.com/150'}" alt="${item.name}">
+    <div class="prize-result">
+      <div class="prize-card rarity-${item.rarity}">
+        <div class="prize-image">
+          <img src="${item.image_url || 'https://via.placeholder.com/150'}" alt="${item.name}">
+        </div>
+        <div class="prize-name">${item.name}</div>
+        <div class="prize-value">${item.value} <i class="fas fa-coins"></i></div>
+        <div class="prize-rarity">${item.rarity}</div>
       </div>
-      <div class="prize-name">${item.name}</div>
-      <div class="prize-value">${item.value} <i class="fas fa-coins"></i></div>
-      <div class="prize-rarity">${item.rarity}</div>
+      <div class="prize-message">Поздравляем с выигрышем!</div>
     </div>
   `
   
   tg.showPopup({
     title: 'Поздравляем!',
-    message: `Вы выиграли: ${item.name}`,
+    message: prizeHtml,
     buttons: [
       { id: 'ok', type: 'default', text: 'Отлично!' }
     ]
   }, function(btnId) {
-    // После закрытия попапа возвращаемся к списку кейсов
-    document.getElementById('case-details-tab').classList.add('hidden')
-    document.getElementById('home-tab').classList.remove('hidden')
-    document.querySelector('.bottom-nav').style.display = 'flex'
+    // После закрытия попапа
+    document.getElementById('roulette-track').style.transitionDuration = '0s'
+    document.getElementById('roulette-track').style.transform = 'translateX(0)'
   })
 }
 

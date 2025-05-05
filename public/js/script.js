@@ -32,3 +32,36 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('profile-tab').classList.remove('hidden');
     });
 });
+
+async function initTelegramAuth() {
+    if (window.Telegram && window.Telegram.WebApp) {
+      const tg = window.Telegram.WebApp
+      
+      // Расширяем приложение на весь экран
+      tg.expand()
+      
+      // Отправляем данные на сервер
+      try {
+        const response = await fetch('/api/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ initData: tg.initData })
+        })
+        
+        const { user } = await response.json()
+        localStorage.setItem('user', JSON.stringify(user))
+        updateUI(user)
+      } catch (error) {
+        console.error('Auth error:', error)
+      }
+    }
+  }
+  
+  function updateUI(user) {
+    document.getElementById('user-balance').textContent = user.balance
+    const profilePic = document.querySelector('.profile-pic')
+    profilePic.innerHTML = `<img src="https://i.pravatar.cc/150?u=${user.id}" alt="Profile">`
+  }
+  
+  // Запускаем при загрузке
+  document.addEventListener('DOMContentLoaded', initTelegramAuth)

@@ -1,45 +1,42 @@
-export class TelegramAuth {
+class TelegramAuth {
     static async init() {
-      if (!window.Telegram?.WebApp) {
-        console.error('Telegram WebApp not available');
-        return false;
-      }
-  
-      const tg = window.Telegram.WebApp;
-      tg.expand();
-  
-      if (tg.initDataUnsafe.user) {
-        try {
-          const response = await fetch('/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ initData: tg.initData })
-          });
-  
-          if (!response.ok) throw new Error('Auth failed');
-  
-          const { user, auth_token } = await response.json();
-          localStorage.setItem('tg_auth', auth_token);
-          return user;
-        } catch (error) {
-          console.error('Auth error:', error);
-          return false;
-        }
-      }
-      return false;
-    }
-  
-    static async getCurrentUser() {
-      const authToken = localStorage.getItem('tg_auth');
-      if (!authToken) return null;
-  
       try {
-        const response = await fetch('/auth/me', {
-          headers: { 'Authorization': `Bearer ${authToken}` }
+        if (!window.Telegram?.WebApp) {
+          console.warn('Telegram WebApp not available');
+          return null;
+        }
+  
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+  
+        const response = await fetch('/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            initData: tg.initData
+          })
         });
+  
+        if (!response.ok) {
+          const error = await response.text();
+          throw new Error(`HTTP error: ${response.status} - ${error}`);
+        }
+  
         return await response.json();
       } catch (error) {
-        console.error('Failed to fetch user:', error);
+        console.error('Auth failed:', error);
+        // Fallback для разработки
+        if (process.env.NODE_ENV === 'development') {
+          return {
+            user: {
+              id: 12345,
+              username: 'Test User',
+              avatar: 'https://via.placeholder.com/150'
+            }
+          };
+        }
         return null;
       }
     }

@@ -57,6 +57,42 @@ function updateUI(user) {
   document.querySelector('.username').textContent = user.username || `ID: ${user.tg_id}`;
 }
 
+// Инициализация приложения
+async function initApp() {
+    console.log('Initializing app...');
+    
+    // Проверяем Telegram WebApp
+    if (window.Telegram?.WebApp) {
+      const tg = window.Telegram.WebApp;
+      tg.expand();
+      tg.ready();
+      
+      console.log('Telegram theme:', tg.themeParams);
+      document.body.classList.add(tg.colorScheme);
+    }
+  
+    // Авторизация
+    try {
+      const authResult = await TelegramAuth.init();
+      if (authResult?.user) {
+        updateUI(authResult.user);
+        setupTabs();
+      } else {
+        showError('Авторизация не удалась');
+      }
+    } catch (error) {
+      console.error('Init error:', error);
+      showError('Ошибка инициализации');
+    }
+  }
+  
+  // Запуск приложения
+  if (document.readyState === 'complete') {
+    initApp();
+  } else {
+    document.addEventListener('DOMContentLoaded', initApp);
+  }
+
 function showAuthError() {
   alert('Для использования приложения требуется авторизация через Telegram');
 }

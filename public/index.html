@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GiftBox - Открывай кейсы с призами</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Шапка -->
+        <header class="header">
+            <div class="balance-card">
+                <div class="balance-content">
+                    <div class="coin-pulse">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="balance-info">
+                        <span class="balance-label">Баланс</span>
+                        <span class="balance-value" id="user-balance">10 000</span>
+                    </div>
+                </div>
+                <div class="balance-wave"></div>
+            </div>
+            
+            <div class="logo-container">
+                <div class="logo-shine"></div>
+                <h1 class="logo-text">GiftRush</h1>
+                <div class="logo-sparkles">
+                    <div class="sparkle"></div>
+                    <div class="sparkle"></div>
+                    <div class="sparkle"></div>
+                </div>
+            </div>
+            
+            <div class="profile-card" id="profile-btn">
+                <div class="profile-pic">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="online-dot"></div>
+            </div>
+        </header>
+
+        <!-- Основной контент -->
+        <main class="main-content">
+            <!-- Главная страница -->
+            <div class="tab-content" id="home-tab">
+                <div class="cases-grid">
+                    <div class="case-item">
+                        <div class="case-icon">
+                            <i class="fas fa-box-open"></i>
+                        </div>
+                        <h3>Обычный кейс</h3>
+                        <p>Шанс на хороший приз</p>
+                        <button class="open-btn">100 <i class="fas fa-coins"></i></button>
+                    </div>
+
+                    <div class="case-item premium">
+                        <div class="case-icon">
+                            <i class="fas fa-gem"></i>
+                        </div>
+                        <h3>Премиум кейс</h3>
+                        <p>Эксклюзивные призы</p>
+                        <button class="open-btn">500 <i class="fas fa-coins"></i></button>
+                    </div>
+
+                    <div class="case-item">
+                        <div class="case-icon">
+                            <i class="fas fa-box-open"></i>
+                        </div>
+                        <h3>Обычный кейс</h3>
+                        <p>Шанс на хороший приз</p>
+                        <button class="open-btn">100 <i class="fas fa-coins"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вкладка профиля (изначально скрыта) -->
+            <div class="tab-content hidden" id="profile-tab">
+                <div class="profile-container">
+                    <div class="profile-header">
+                        <div class="avatar">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <h2>Ваш профиль</h2>
+                        <p class="username">@username</p>
+                    </div>
+
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <i class="fas fa-coins"></i>
+                            <div>
+                                <span class="stat-value">10 000</span>
+                                <span class="stat-label">Баланс</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-box-open"></i>
+                            <div>
+                                <span class="stat-value">24</span>
+                                <span class="stat-label">Открыто кейсов</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-trophy"></i>
+                            <div>
+                                <span class="stat-value">5</span>
+                                <span class="stat-label">Выиграно призов</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="profile-actions">
+                        <button class="action-btn purple">
+                            <i class="fas fa-wallet"></i> Пополнить баланс
+                        </button>
+                        <button class="action-btn dark">
+                            <i class="fas fa-cog"></i> Настройки
+                        </button>
+                        <button class="action-btn red">
+                            <i class="fas fa-sign-out-alt"></i> Выйти
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Нижнее меню -->
+        <nav class="bottom-nav">
+            <a href="#" class="nav-item active" data-tab="home-tab">
+                <i class="fas fa-home"></i>
+                <span>Главная</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="gifts-tab">
+                <i class="fas fa-gift"></i>
+                <span>Подарки</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="shop-tab">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Магазин</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="profile-tab">
+                <i class="fas fa-user"></i>
+                <span>Профиль</span>
+            </a>
+        </nav>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

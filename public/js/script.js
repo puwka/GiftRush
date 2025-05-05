@@ -33,45 +33,63 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// В script.js
 async function initTelegramAuth() {
-    if (!window.Telegram?.WebApp) return
+    console.log('1. Auth started'); // Логирование
+    
+    if (!window.Telegram?.WebApp) {
+      console.warn('Telegram WebApp not available');
+      return;
+    }
   
-    const tg = window.Telegram.WebApp
-    tg.expand()
+    const tg = window.Telegram.WebApp;
+    console.log('2. TG WebApp initData:', tg.initData); // Логируем данные Telegram
   
     try {
       const response = await fetch('/api/auth', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          initData: tg.initData 
-        })
-      })
-  
-      // Проверка статуса ответа
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-  
-      // Проверка наличия данных
-      const data = await response.json()
-      if (!data?.user) {
-        throw new Error('Invalid response data')
-      }
-  
-      localStorage.setItem('user', JSON.stringify(data.user))
-      updateUI(data.user)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData: tg.initData })
+      });
       
+      console.log('3. Server response status:', response.status); // Логируем статус
+      
+      const data = await response.json();
+      console.log('4. Server response data:', data); // Логируем данные
+      
+      if (!data?.user) throw new Error('No user data in response');
+      
+      localStorage.setItem('user', JSON.stringify(data.user));
+      console.log('5. User saved to localStorage:', data.user); // Логируем
+      
+      updateUI(data.user);
     } catch (error) {
-      console.error('Auth failed:', error)
-      // Fallback для разработки
-      if (process.env.NODE_ENV === 'development') {
-        localStorage.setItem('user', JSON.stringify({
-          id: 123,
-          balance: 1000
-        }))
-      }
+      console.error('Auth error:', error);
     }
 }
+  
+  function updateUI(user) {
+    console.log('6. Updating UI with user:', user); // Логируем
+    
+    // Обновляем баланс
+    const balanceElement = document.getElementById('user-balance');
+    if (balanceElement) {
+      balanceElement.textContent = user.balance || 0;
+      console.log('7. Balance updated');
+    }
+    
+    // Обновляем аватар
+    const profilePic = document.querySelector('.profile-pic');
+    if (profilePic) {
+      profilePic.innerHTML = user.photo_url 
+        ? `<img src="${user.photo_url}" alt="Profile">`
+        : `<i class="fas fa-user"></i>`;
+      console.log('8. Profile pic updated');
+    }
+  }
+  
+  // Запускаем при загрузке
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, starting auth...');
+    initTelegramAuth();
+});

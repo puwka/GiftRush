@@ -1,66 +1,80 @@
-import { createClient } from '@supabase/supabase-js';
+import express from 'express';
+import { supabase } from '../supabase.js';
+import crypto from 'crypto';
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY
-);
+const router = express.Router();
 
-export default async (req, res) => {
-  console.log('API Request received'); // Логирование
+// Валидация данных Telegram WebApp
+function validateTelegramData(token, initData) {
+  const params = new URLSearchParams(initData);
+  const hash = params.get('hash');
+  params.delete('hash');
   
-  // Настройки CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  const secret = crypto.createHash('sha256')
+    .update(token)
+    .digest();
+  
+  const dataCheckString = Array.from(params.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, value]) => `${key}=${value}`)
+    .join('\n');
+  
+  const computedHash = crypto.createHmac('sha256', secret)
+    .update(dataCheckString)
+    .digest('hex');
+    
+  return computedHash === hash;
+}
 
-  if (req.method !== 'POST') {
-    res.setHeader('Allow', ['POST']);
-    return res.status(405).json({ error: `Method ${req.method} not allowed` });
+// Авторизация пользователя
+router.post('/login', async (req, res) => {
+  const { initData } = req.body;
+  const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+
+  if (!validateTelegramData(BOT_TOKEN, initData)) {
+    return res.status(401).json({ error: 'Invalid Telegram data' });
   }
 
+  const params = new URLSearchParams(initData);
+  const userData = JSON.parse(params.get('user'));
+
   try {
-    const { initData } = req.body;
-    console.log('Received initData:', initData); // Логирование
-
-    if (!initData) {
-      return res.status(400).json({ error: 'initData is required' });
-    }
-
-    const params = new URLSearchParams(initData);
-    const tgUser = JSON.parse(params.get('user'));
-    console.log('Telegram user:', tgUser); // Логирование
-
+    // Сохранение/обновление пользователя
     const { data: user, error } = await supabase
       .from('users')
       .upsert({
-        tg_id: tgUser.id,
-        username: tgUser.username,
-        first_name: tgUser.first_name,
-        last_name: tgUser.last_name,
-        photo_url: `https://t.me/i/userpic/160/${tgUser.username}.jpg`,
-        last_login: new Date().toISOString()
+        tg_id: userData.id,
+        username: [userData.first_name, userData.last_name].filter(Boolean).join(' '),
+        avatar_url: userData.photo_url,
+        last_login: new Date()
       }, { onConflict: 'tg_id' })
-      .select('*')
+      .select()
       .single();
 
-    if (error) {
-      console.error('Supabase error:', error);
-      throw error;
-    }
+    if (error) throw error;
 
-    console.log('User data from Supabase:', user); // Логирование
-    
-    res.status(200).json({
+    // Получение баланса
+    const { data: balance } = await supabase
+      .from('balances')
+      .select('amount')
+      .eq('user_id', userData.id)
+      .single();
+
+    res.json({
       user: {
-        id: user.id,
-        tg_id: user.tg_id,
-        username: user.username,
-        balance: user.balance || 1000,
-        photo_url: user.photo_url
-      }
+        ...user,
+        balance: balance?.amount || 0
+      },
+      auth_token: generateAuthToken(userData.id)
     });
   } catch (error) {
-    console.error('API error:', error);
-    res.status(500).json({ error: error.message });
+    console.error('Auth error:', error);
+    res.status(500).json({ error: 'Authentication failed' });
   }
-};
+});
+
+function generateAuthToken(tgId) {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+export default router;

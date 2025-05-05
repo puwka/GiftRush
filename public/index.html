@@ -46,63 +46,33 @@
         <main class="main-content">
             <!-- Главная страница -->
             <div class="tab-content" id="home-tab">
-                <div class="categories-container">
-                <!-- Категории будут загружаться через JS -->
-                </div>
-                
-                <div class="cases-container">
-                <div class="cases-header">
-                    <h2 class="section-title">Все кейсы</h2>
-                    <div class="sort-options">
-                    <button class="sort-btn active" data-sort="popular">Популярные</button>
-                    <button class="sort-btn" data-sort="new">Новые</button>
-                    <button class="sort-btn" data-sort="price">По цене</button>
-                    </div>
-                </div>
-                
                 <div class="cases-grid">
-                    <!-- Кейсы будут загружаться через JS -->
-                </div>
-                </div>
-            </div>
+                    <div class="case-item">
+                        <div class="case-icon">
+                            <i class="fas fa-box-open"></i>
+                        </div>
+                        <h3>Обычный кейс</h3>
+                        <p>Шанс на хороший приз</p>
+                        <button class="open-btn">100 <i class="fas fa-coins"></i></button>
+                    </div>
 
-            <!-- Вкладка с деталями кейса -->
-            <div class="tab-content hidden" id="case-details-tab">
-                <div class="case-details-container">
-                <button class="back-btn" id="back-to-cases">
-                    <i class="fas fa-arrow-left"></i> Назад
-                </button>
-                
-                <div class="case-preview">
-                    <div class="case-image">
-                    <img id="case-detail-image" src="" alt="Case">
+                    <div class="case-item premium">
+                        <div class="case-icon">
+                            <i class="fas fa-gem"></i>
+                        </div>
+                        <h3>Премиум кейс</h3>
+                        <p>Эксклюзивные призы</p>
+                        <button class="open-btn">500 <i class="fas fa-coins"></i></button>
                     </div>
-                    <div class="case-info">
-                    <h2 id="case-detail-name"></h2>
-                    <p id="case-detail-description"></p>
-                    <div class="case-price">
-                        <span id="case-detail-price"></span>
-                        <i class="fas fa-coins"></i>
-                    </div>
-                    <button class="open-btn-big" id="open-case-btn">
-                        Открыть за <span id="case-open-price"></span> <i class="fas fa-coins"></i>
-                    </button>
-                    </div>
-                </div>
-                
-                <div class="roulette-container">
-                    <div class="roulette-track" id="roulette-track">
-                      <!-- Элементы рулетки будут добавляться через JS -->
-                    </div>
-                    <div class="roulette-center-line"></div>
-                </div>
 
-                <div class="possible-items">
-                    <h3>Возможные призы</h3>
-                    <div class="items-grid" id="case-items-grid">
-                    <!-- Предметы будут загружаться через JS -->
+                    <div class="case-item">
+                        <div class="case-icon">
+                            <i class="fas fa-box-open"></i>
+                        </div>
+                        <h3>Обычный кейс</h3>
+                        <p>Шанс на хороший приз</p>
+                        <button class="open-btn">100 <i class="fas fa-coins"></i></button>
                     </div>
-                </div>
                 </div>
             </div>
 

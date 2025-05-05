@@ -222,6 +222,28 @@ body {
     color: rgba(255, 255, 255, 0.9);
 }
 
+@keyframes pulseOnline {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.avatar-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #8e44ad;
+}
+
+.avatar-img-small {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #8e44ad;
+}
+
 .online-dot {
     position: absolute;
     bottom: 0;
@@ -231,13 +253,6 @@ body {
     background: #2ecc71;
     border-radius: 50%;
     border: 2px solid #1f1f32;
-    animation: pulseOnline 1.5s infinite;
-}
-
-@keyframes pulseOnline {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); }
 }
 
 /* Основной контент */

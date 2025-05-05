@@ -1,4 +1,4 @@
-import { TelegramAuth } from 'js/auth.js';
+import { TelegramAuth } from './auth.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const user = await TelegramAuth.init();

@@ -832,306 +832,65 @@ body {
 
 /* Анимация открытия кейса */
 .prize-card {
-    text-align: center;
-    padding: 20px;
-    border-radius: 12px;
-    margin: 15px 0;
-  }
-  
-  .prize-image {
-    width: 150px;
-    height: 150px;
-    margin: 0 auto 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-  }
-  
-  .prize-image img {
-    max-width: 100%;
-    max-height: 100%;
-  }
-  
-  .prize-name {
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 8px;
-    color: #fff;
-  }
-  
-  .prize-value {
-    font-size: 16px;
-    color: #f1c40f;
-    margin-bottom: 8px;
-  }
-  
-  .prize-rarity {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 15px;
-    font-size: 12px;
-    font-weight: bold;
-  }
-  
-  /* Эффект для редких предметов */
-  @keyframes glow {
-    0% { box-shadow: 0 0 5px rgba(241, 196, 15, 0.5); }
-    50% { box-shadow: 0 0 20px rgba(241, 196, 15, 0.8); }
-    100% { box-shadow: 0 0 5px rgba(241, 196, 15, 0.5); }
-  }
-  
-  .rarity-legendary .prize-image {
-    animation: glow 2s infinite;
-    border: 2px solid #f1c40f;
-  }
-  
-  .rarity-epic .prize-image {
-    border: 2px solid #9b59b6;
-  }
-  
-  .rarity-rare .prize-image {
-    border: 2px solid #3498db;
-  }
+  text-align: center;
+  padding: 20px;
+  border-radius: 12px;
+  margin: 15px 0;
+}
 
-  /* Добавьте в style.css */
-/* Стили для рулетки */
-.roulette-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.9);
-    z-index: 1000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .roulette-container {
-    width: 90%;
-    max-width: 600px;
-    background: #1e1e1e;
-    border-radius: 15px;
-    padding: 20px;
-    position: relative;
-    border: 1px solid #8e44ad;
-    box-shadow: 0 0 30px rgba(142, 68, 173, 0.5);
-  }
-  
-  .roulette-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  
-  .roulette-header h3 {
-    color: #f1c40f;
-    font-size: 20px;
-  }
-  
-  .roulette-close {
-    color: #aaa;
-    font-size: 28px;
-    cursor: pointer;
-  }
-  
-  .roulette-track {
-    display: flex;
-    overflow: hidden;
-    height: 150px;
-    position: relative;
-    margin: 20px 0;
-  }
-  
-  .roulette-item {
-    min-width: 120px;
-    height: 120px;
-    margin: 0 10px;
-    background: #252525;
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 10px;
-    border: 1px solid #333;
-    transition: transform 0.3s;
-  }
-  
-  .roulette-item img {
-    width: 60px;
-    height: 60px;
-    object-fit: contain;
-    margin-bottom: 8px;
-  }
-  
-  .roulette-item-name {
-    font-size: 12px;
-    color: #fff;
-    text-align: center;
-    margin-bottom: 5px;
-  }
-  
-  .roulette-item-value {
-    font-size: 12px;
-    color: #f1c40f;
-  }
-  
-  .roulette-center-line {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 3px;
-    height: 140px;
-    background: #f1c40f;
-    box-shadow: 0 0 10px #f1c40f;
-    z-index: 2;
-  }
-  
-  .roulette-stop-btn {
-    background: linear-gradient(135deg, #e74c3c, #c0392b);
-    color: white;
-    border: none;
-    padding: 12px 25px;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    margin: 0 auto;
-    display: block;
-    transition: all 0.2s;
-  }
-  
-  .roulette-stop-btn:hover {
-    background: linear-gradient(135deg, #c0392b, #e74c3c);
-    box-shadow: 0 0 15px rgba(231, 76, 60, 0.5);
-  }
-  
-  /* Стили для модального окна с призом */
-  .prize-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.9);
-    z-index: 1000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .prize-modal-content {
-    background: #1e1e1e;
-    border-radius: 15px;
-    padding: 30px;
-    width: 90%;
-    max-width: 400px;
-    text-align: center;
-    position: relative;
-    border: 1px solid #8e44ad;
-    box-shadow: 0 0 30px rgba(142, 68, 173, 0.5);
-  }
-  
-  .prize-modal-close {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    color: #aaa;
-    font-size: 28px;
-    cursor: pointer;
-  }
-  
-  .prize-image-container {
-    width: 150px;
-    height: 150px;
-    margin: 0 auto 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.3);
-    border: 3px solid #8e44ad;
-  }
-  
-  .prize-image-container img {
-    max-width: 100%;
-    max-height: 100%;
-  }
-  
-  .prize-modal h3 {
-    color: #f1c40f;
-    margin-bottom: 10px;
-    font-size: 22px;
-  }
-  
-  .prize-value {
-    color: #f1c40f;
-    font-size: 18px;
-    margin-bottom: 15px;
-  }
-  
-  .prize-rarity {
-    display: inline-block;
-    padding: 5px 15px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: bold;
-    margin-bottom: 20px;
-  }
-  
-  .prize-modal-btn {
-    background: linear-gradient(135deg, #8e44ad, #9b59b6);
-    color: white;
-    border: none;
-    padding: 12px 25px;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  
-  .prize-modal-btn:hover {
-    background: linear-gradient(135deg, #9b59b6, #8e44ad);
-    box-shadow: 0 0 15px rgba(142, 68, 173, 0.5);
-  }
-  
-  /* Анимации */
-  @keyframes roulette-scroll {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-1000px); }
-  }
-  
-  .roulette-scrolling {
-    animation: roulette-scroll 5s linear infinite;
-  }
-  
-  /* Цвета редкости */
-  .rarity-common {
-    background-color: #5a5a5a;
-    color: #fff;
-  }
-  
-  .rarity-uncommon {
-    background-color: #2ecc71;
-    color: #fff;
-  }
-  
-  .rarity-rare {
-    background-color: #3498db;
-    color: #fff;
-  }
-  
-  .rarity-epic {
-    background-color: #9b59b6;
-    color: #fff;
-  }
-  
-  .rarity-legendary {
-    background-color: #f1c40f;
-    color: #000;
-  }
+.prize-image {
+  width: 150px;
+  height: 150px;
+  margin: 0 auto 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+.prize-image img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.prize-name {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #fff;
+}
+
+.prize-value {
+  font-size: 16px;
+  color: #f1c40f;
+  margin-bottom: 8px;
+}
+
+.prize-rarity {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Эффект для редких предметов */
+@keyframes glow {
+  0% { box-shadow: 0 0 5px rgba(241, 196, 15, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(241, 196, 15, 0.8); }
+  100% { box-shadow: 0 0 5px rgba(241, 196, 15, 0.5); }
+}
+
+.rarity-legendary .prize-image {
+  animation: glow 2s infinite;
+  border: 2px solid #f1c40f;
+}
+
+.rarity-epic .prize-image {
+  border: 2px solid #9b59b6;
+}
+
+.rarity-rare .prize-image {
+  border: 2px solid #3498db;
+}

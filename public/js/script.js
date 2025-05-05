@@ -317,7 +317,7 @@ async function openCaseDetails(caseId) {
   }
 }
 
-// Обновите функцию openCase в script.js
+// Функция открытия кейса
 async function openCase(caseId, price) {
   try {
     // Проверяем авторизацию
@@ -340,7 +340,7 @@ async function openCase(caseId, price) {
       return
     }
     
-    // Получаем предметы кейса
+    // Выбираем случайный предмет
     const { data: items, error: itemsError } = await supabase
       .from('case_items')
       .select('*')
@@ -348,11 +348,20 @@ async function openCase(caseId, price) {
     
     if (itemsError) throw itemsError
     
-    // Показываем рулетку
-    showRoulette(items)
+    // Алгоритм выбора предмета
+    const totalProbability = items.reduce((sum, item) => sum + item.probability, 0)
+    let random = Math.random() * totalProbability
+    let selectedItem = null
     
-    // Выбираем случайный предмет (после остановки рулетки)
-    const selectedItem = await waitForRouletteStop(items)
+    for (const item of items) {
+      if (random < item.probability) {
+        selectedItem = item
+        break
+      }
+      random -= item.probability
+    }
+    
+    if (!selectedItem) selectedItem = items[0]
     
     // Обновляем баланс
     const newBalance = user.balance - price + selectedItem.value
@@ -396,126 +405,13 @@ async function openCase(caseId, price) {
     userBalance.textContent = newBalance
     statBalance.textContent = newBalance
     
-    // Показываем модальное окно с выигрышем
-    showPrizeModal(selectedItem)
+    // Показываем результат
+    showPrize(selectedItem)
   } catch (error) {
     console.error('Ошибка открытия кейса:', error)
     tg.showAlert('Произошла ошибка при открытии кейса')
   }
 }
-
-// Показ рулетки
-function showRoulette(items) {
-  const rouletteOverlay = document.getElementById('roulette-overlay')
-  const rouletteTrack = document.getElementById('roulette-track')
-  const rouletteStopBtn = document.getElementById('roulette-stop-btn')
-  
-  // Очищаем рулетку
-  rouletteTrack.innerHTML = ''
-  
-  // Добавляем элементы в рулетку (повторяем для бесконечного эффекта)
-  for (let i = 0; i < 3; i++) {
-    items.forEach(item => {
-      const rouletteItem = document.createElement('div')
-      rouletteItem.className = 'roulette-item'
-      rouletteItem.innerHTML = `
-        <img src="${item.image_url || 'https://via.placeholder.com/60'}" alt="${item.name}">
-        <div class="roulette-item-name">${item.name}</div>
-        <div class="roulette-item-value">${item.value} <i class="fas fa-coins"></i></div>
-      `
-      rouletteTrack.appendChild(rouletteItem)
-    })
-  }
-  
-  // Показываем рулетку
-  rouletteOverlay.classList.remove('hidden')
-  rouletteTrack.classList.add('roulette-scrolling')
-  
-  // Показываем кнопку остановки через 2 секунды
-  setTimeout(() => {
-    rouletteStopBtn.classList.remove('hidden')
-  }, 2000)
-}
-
-// Ожидание остановки рулетки
-function waitForRouletteStop(items) {
-  return new Promise((resolve) => {
-    const rouletteStopBtn = document.getElementById('roulette-stop-btn')
-    const rouletteTrack = document.getElementById('roulette-track')
-    const rouletteOverlay = document.getElementById('roulette-overlay')
-    
-    let stopHandler = () => {
-      // Удаляем обработчик, чтобы нельзя было нажать несколько раз
-      rouletteStopBtn.removeEventListener('click', stopHandler)
-      
-      // Останавливаем анимацию
-      rouletteTrack.classList.remove('roulette-scrolling')
-      
-      // Вычисляем выигранный предмет (случайный, но можно и по позиции)
-      const totalProbability = items.reduce((sum, item) => sum + item.probability, 0)
-      let random = Math.random() * totalProbability
-      let selectedItem = null
-      
-      for (const item of items) {
-        if (random < item.probability) {
-          selectedItem = item
-          break
-        }
-        random -= item.probability
-      }
-      
-      if (!selectedItem) selectedItem = items[0]
-      
-      // Через небольшую задержку скрываем рулетку
-      setTimeout(() => {
-        rouletteOverlay.classList.add('hidden')
-        rouletteStopBtn.classList.add('hidden')
-        resolve(selectedItem)
-      }, 1000)
-    }
-    
-    rouletteStopBtn.addEventListener('click', stopHandler)
-  })
-}
-
-// Показ модального окна с призом
-function showPrizeModal(item) {
-  const prizeModal = document.getElementById('prize-modal')
-  const prizeImage = document.getElementById('prize-modal-image')
-  const prizeName = document.getElementById('prize-modal-name')
-  const prizeValue = document.getElementById('prize-modal-value')
-  const prizeRarity = document.getElementById('prize-modal-rarity')
-  const prizeBtn = document.getElementById('prize-modal-btn')
-  
-  // Заполняем данные
-  prizeImage.src = item.image_url || 'https://via.placeholder.com/150'
-  prizeImage.alt = item.name
-  prizeName.textContent = item.name
-  prizeValue.innerHTML = `${item.value} <i class="fas fa-coins"></i>`
-  prizeRarity.textContent = item.rarity
-  prizeRarity.className = `prize-rarity rarity-${item.rarity}`
-  
-  // Показываем модальное окно
-  prizeModal.classList.remove('hidden')
-  
-  // Обработчик закрытия
-  const closeModal = () => {
-    prizeModal.classList.add('hidden')
-    // Возвращаемся к списку кейсов
-    document.getElementById('case-details-tab').classList.add('hidden')
-    document.getElementById('home-tab').classList.remove('hidden')
-    document.querySelector('.bottom-nav').style.display = 'flex'
-  }
-  
-  document.getElementById('prize-modal-close').onclick = closeModal
-  prizeBtn.onclick = closeModal
-}
-
-document.getElementById('roulette-close').addEventListener('click', function() {
-    document.getElementById('roulette-overlay').classList.add('hidden')
-    document.getElementById('roulette-track').classList.remove('roulette-scrolling')
-    document.getElementById('roulette-stop-btn').classList.add('hidden')
-})
 
 // Показ выигрыша
 function showPrize(item) {

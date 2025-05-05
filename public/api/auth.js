@@ -1,18 +1,30 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.SUPABASE_URL
-const supabaseKey = process.env.SUPABASE_KEY
-const supabase = createClient(supabaseUrl, supabaseKey)
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY
+)
 
-export default async function handler(req, res) {
+export default async (req, res) => {
+  // Разрешаем только POST-запросы
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
+    res.setHeader('Allow', ['POST'])
+    return res.status(405).json({ error: `Method ${req.method} not allowed` })
   }
 
-  const { initData } = req.body
-  
   try {
-    const tgUser = parseTelegramInitData(initData)
+    const { initData } = req.body
+    
+    // Проверка наличия данных
+    if (!initData) {
+      return res.status(400).json({ error: 'initData is required' })
+    }
+
+    // Парсим данные Telegram
+    const params = new URLSearchParams(initData)
+    const tgUser = JSON.parse(params.get('user'))
+
+    // Сохраняем в Supabase
     const { data: user, error } = await supabase
       .from('users')
       .upsert({
@@ -27,18 +39,16 @@ export default async function handler(req, res) {
 
     if (error) throw error
 
-    res.status(200).json({ 
+    // Успешный ответ
+    res.status(200).json({
       user: {
         id: user.id,
-        balance: user.balance
+        balance: user.balance || 0
       }
     })
+
   } catch (error) {
+    console.error('Auth error:', error)
     res.status(500).json({ error: error.message })
   }
-}
-
-function parseTelegramInitData(initData) {
-  const params = new URLSearchParams(initData)
-  return JSON.parse(params.get('user'))
 }

@@ -34,34 +34,44 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function initTelegramAuth() {
-    if (window.Telegram && window.Telegram.WebApp) {
-      const tg = window.Telegram.WebApp
-      
-      // Расширяем приложение на весь экран
-      tg.expand()
-      
-      // Отправляем данные на сервер
-      try {
-        const response = await fetch('/api/auth', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ initData: tg.initData })
+    if (!window.Telegram?.WebApp) return
+  
+    const tg = window.Telegram.WebApp
+    tg.expand()
+  
+    try {
+      const response = await fetch('/api/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          initData: tg.initData 
         })
-        
-        const { user } = await response.json()
-        localStorage.setItem('user', JSON.stringify(user))
-        updateUI(user)
-      } catch (error) {
-        console.error('Auth error:', error)
+      })
+  
+      // Проверка статуса ответа
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+  
+      // Проверка наличия данных
+      const data = await response.json()
+      if (!data?.user) {
+        throw new Error('Invalid response data')
+      }
+  
+      localStorage.setItem('user', JSON.stringify(data.user))
+      updateUI(data.user)
+      
+    } catch (error) {
+      console.error('Auth failed:', error)
+      // Fallback для разработки
+      if (process.env.NODE_ENV === 'development') {
+        localStorage.setItem('user', JSON.stringify({
+          id: 123,
+          balance: 1000
+        }))
       }
     }
-  }
-  
-  function updateUI(user) {
-    document.getElementById('user-balance').textContent = user.balance
-    const profilePic = document.querySelector('.profile-pic')
-    profilePic.innerHTML = `<img src="https://i.pravatar.cc/150?u=${user.id}" alt="Profile">`
-  }
-  
-  // Запускаем при загрузке
-  document.addEventListener('DOMContentLoaded', initTelegramAuth)
+}

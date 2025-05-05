@@ -8,6 +8,14 @@
     ],
     "routes": [
       {
+        "src": "/css/(.*)",
+        "headers": { "Cache-Control": "public, max-age=31536000" }
+      },
+      {
+        "src": "/js/(.*)",
+        "headers": { "Cache-Control": "public, max-age=31536000" }
+      },
+      {
         "src": "/(.*)",
         "dest": "/public/index.html"
       }

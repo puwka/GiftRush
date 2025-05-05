@@ -1,16 +1,30 @@
-import { TelegramAuth } from './auth.js';
-
 document.addEventListener('DOMContentLoaded', async () => {
-  const user = await TelegramAuth.init();
+    try {
+      if (!window.Telegram?.WebApp) {
+        console.warn('Not in Telegram context');
+        return;
+      }
   
-  if (user) {
-    updateUI(user);
-    initApp();
-  } else {
-    showAuthError();
-  }
+      const tg = window.Telegram.WebApp;
+      tg.expand();
+  
+      // Авторизация
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          initData: tg.initData
+        })
+      });
+  
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Auth failed');
+      }
 
-  const tabLinks = document.querySelectorAll('.nav-item');
+      const tabLinks = document.querySelectorAll('.nav-item');
     const tabContents = document.querySelectorAll('.tab-content');
     
     tabLinks.forEach(link => {
@@ -41,58 +55,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         tabContents.forEach(content => content.classList.add('hidden'));
         document.getElementById('profile-tab').classList.remove('hidden');
     });
-});
-
-function updateUI(user) {
-  // Обновление шапки
-  document.getElementById('user-balance').textContent = user.balance;
   
-  // Обновление профиля
-  if (user.avatar_url) {
-    document.querySelector('.avatar').innerHTML = `
-      <img src="${user.avatar_url}" alt="Profile" class="avatar-img">
-    `;
-  }
+      const { user } = await response.json();
+      updateUI(user);
+      initTabs();
   
-  document.querySelector('.username').textContent = user.username || `ID: ${user.tg_id}`;
-}
-
-// Инициализация приложения
-async function initApp() {
-    console.log('Initializing app...');
-    
-    // Проверяем Telegram WebApp
-    if (window.Telegram?.WebApp) {
-      const tg = window.Telegram.WebApp;
-      tg.expand();
-      tg.ready();
-      
-      console.log('Telegram theme:', tg.themeParams);
-      document.body.classList.add(tg.colorScheme);
-    }
-  
-    // Авторизация
-    try {
-      const authResult = await TelegramAuth.init();
-      if (authResult?.user) {
-        updateUI(authResult.user);
-        setupTabs();
-      } else {
-        showError('Авторизация не удалась');
-      }
     } catch (error) {
-      console.error('Init error:', error);
-      showError('Ошибка инициализации');
+      console.error('Initialization error:', error);
+      // Fallback для разработки
+      if (window.location.hostname === 'localhost') {
+        updateUI({
+          tg_id: 12345,
+          username: 'Test User',
+          balance: 1000,
+          avatar_url: 'https://via.placeholder.com/150'
+        });
+      }
+    }
+  });
+  
+  function updateUI(user) {
+    document.getElementById('user-balance').textContent = user.balance;
+    document.querySelector('.username').textContent = user.username;
+    
+    if (user.avatar_url) {
+      document.querySelector('.avatar').innerHTML = `
+        <img src="${user.avatar_url}" alt="Profile" class="avatar-img">
+      `;
     }
   }
-  
-  // Запуск приложения
-  if (document.readyState === 'complete') {
-    initApp();
-  } else {
-    document.addEventListener('DOMContentLoaded', initApp);
-  }
-
-function showAuthError() {
-  alert('Для использования приложения требуется авторизация через Telegram');
-}

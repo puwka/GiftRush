@@ -9,29 +9,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   } else {
     showAuthError();
   }
-});
 
-function updateUI(user) {
-  // Обновление шапки
-  document.getElementById('user-balance').textContent = user.balance;
-  
-  // Обновление профиля
-  if (user.avatar_url) {
-    document.querySelector('.avatar').innerHTML = `
-      <img src="${user.avatar_url}" alt="Profile" class="avatar-img">
-    `;
-  }
-  
-  document.querySelector('.username').textContent = user.username || `ID: ${user.tg_id}`;
-}
-
-function showAuthError() {
-  alert('Для использования приложения требуется авторизация через Telegram');
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Переключение вкладок
-    const tabLinks = document.querySelectorAll('.nav-item');
+  const tabLinks = document.querySelectorAll('.nav-item');
     const tabContents = document.querySelectorAll('.tab-content');
     
     tabLinks.forEach(link => {
@@ -63,3 +42,21 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('profile-tab').classList.remove('hidden');
     });
 });
+
+function updateUI(user) {
+  // Обновление шапки
+  document.getElementById('user-balance').textContent = user.balance;
+  
+  // Обновление профиля
+  if (user.avatar_url) {
+    document.querySelector('.avatar').innerHTML = `
+      <img src="${user.avatar_url}" alt="Profile" class="avatar-img">
+    `;
+  }
+  
+  document.querySelector('.username').textContent = user.username || `ID: ${user.tg_id}`;
+}
+
+function showAuthError() {
+  alert('Для использования приложения требуется авторизация через Telegram');
+}

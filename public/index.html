@@ -6,181 +6,6 @@
     <title>GiftRush - Открывай кейсы с призами</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background-color: #0f0f1a;
-            color: #fff;
-            padding-bottom: 80px;
-        }
-        
-        .container {
-            max-width: 100%;
-        }
-        
-        /* Шапка */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .balance {
-            background: linear-gradient(135deg, #2a2a3a, #1e1e2a);
-            padding: 8px 15px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-        
-        .balance i {
-            color: #f1c40f;
-        }
-        
-        .logo {
-            font-size: 22px;
-            font-weight: 800;
-            background: linear-gradient(to right, #9b59b6, #f1c40f);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        
-        .profile {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #2a2a3a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        /* Категории */
-        .categories {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            overflow-x: auto;
-            padding-bottom: 5px;
-        }
-        
-        .category {
-            background: #1e1e2a;
-            padding: 8px 15px;
-            border-radius: 20px;
-            white-space: nowrap;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .category.active {
-            background: linear-gradient(135deg, #9b59b6, #8e44ad);
-            font-weight: bold;
-        }
-        
-        /* Кейсы */
-        .cases-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
-        
-        .case-item {
-            background: #1e1e2a;
-            border-radius: 12px;
-            overflow: hidden;
-            position: relative;
-            aspect-ratio: 1/1;
-            transition: transform 0.3s;
-        }
-        
-        .case-item:hover {
-            transform: translateY(-5px);
-        }
-        
-        .case-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .case-price {
-            position: absolute;
-            bottom: 10px;
-            left: 0;
-            right: 0;
-            background: rgba(0, 0, 0, 0.7);
-            margin: 0 auto;
-            width: 90%;
-            padding: 8px;
-            border-radius: 20px;
-            text-align: center;
-            font-weight: bold;
-            backdrop-filter: blur(5px);
-        }
-        
-        .case-price i {
-            color: #f1c40f;
-            margin-right: 5px;
-        }
-        
-        /* Нижнее меню */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #1a1a24;
-            display: flex;
-            justify-content: space-around;
-            padding: 15px 0;
-            border-top: 1px solid #2a2a3a;
-        }
-        
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: #666;
-            text-decoration: none;
-            font-size: 12px;
-        }
-        
-        .nav-item i {
-            font-size: 20px;
-            margin-bottom: 5px;
-        }
-        
-        .nav-item.active {
-            color: #9b59b6;
-        }
-        
-        /* Премиум кейсы */
-        .case-item.premium::after {
-            content: 'PREMIUM';
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: linear-gradient(135deg, #f39c12, #f1c40f);
-            color: #000;
-            font-weight: bold;
-            font-size: 10px;
-            padding: 3px 8px;
-            border-radius: 10px;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -219,73 +44,37 @@
 
         <!-- Основной контент -->
         <main class="main-content">
-            <!-- Категории -->
-            <div class="categories">
-                <div class="category active">Все</div>
-                <div class="category">Популярные</div>
-                <div class="category">Премиум</div>
-                <div class="category">Лимитированные</div>
-            </div>
-            
-            <!-- Кейсы -->
-            <div class="cases-grid">
-                <!-- Базовый кейс -->
-                <div class="case-item">
-                    <div class="case-name">Базовый кейс</div>
-                    <div class="case-image-container">
-                        <img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="Базовый кейс" class="case-image">
+            <!-- Главная страница -->
+            <div class="tab-content" id="home-tab">
+                <div class="cases-grid">
+                    <div class="case-item">
+                        <div class="case-icon">
+                            <i class="fas fa-box-open"></i>
+                        </div>
+                        <h3>Обычный кейс</h3>
+                        <p>Шанс на хороший приз</p>
+                        <button class="open-btn">100 <i class="fas fa-coins"></i></button>
                     </div>
-                    <div class="case-price">
-                        <i class="fas fa-coins"></i> 100
+
+                    <div class="case-item premium">
+                        <div class="case-icon">
+                            <i class="fas fa-gem"></i>
+                        </div>
+                        <h3>Премиум кейс</h3>
+                        <p>Эксклюзивные призы</p>
+                        <button class="open-btn">500 <i class="fas fa-coins"></i></button>
                     </div>
-                </div>
-                
-                <!-- Игровой кейс -->
-                <div class="case-item">
-                    <div class="case-name">Базовый кейс</div>
-                    <img src="https://images.giftsbattle.com/case/ot-10k-popolnenii_.webp" alt="Игровой кейс" class="case-image">
-                    <div class="case-price">
-                        <i class="fas fa-coins"></i> 150
-                    </div>
-                </div>
-                
-                <!-- Золотой кейс (премиум) -->
-                <div class="case-item premium">
-                    <div class="case-name">Базовый кейс</div>
-                    <img src="https://images.giftsbattle.com/case/ot5kdep.webp" alt="Золотой кейс" class="case-image">
-                    <div class="case-price">
-                        <i class="fas fa-coins"></i> 500
-                    </div>
-                </div>
-                
-                <!-- Новогодний кейс -->
-                <div class="case-item">
-                    <div class="case-name">Базовый кейс</div>
-                    <img src="https://images.giftsbattle.com/case/direktor.webp" alt="Новогодний кейс" class="case-image">
-                    <div class="case-price">
-                        <i class="fas fa-coins"></i> 300
-                    </div>
-                </div>
-                
-                <!-- Кристальный кейс (премиум) -->
-                <div class="case-item premium">
-                    <div class="case-name">Базовый кейс</div>
-                    <img src="https://images.giftsbattle.com/case/oligarh.webp" alt="Кристальный кейс" class="case-image">
-                    <div class="case-price">
-                        <i class="fas fa-coins"></i> 750
-                    </div>
-                </div>
-                
-                <!-- Летний кейс -->
-                <div class="case-item">
-                    <div class="case-name">Базовый кейс</div>
-                    <img src="https://images.giftsbattle.com/case/pikmi.webp" alt="Летний кейс" class="case-image">
-                    <div class="case-price">
-                        <i class="fas fa-coins"></i> 250
+
+                    <div class="case-item">
+                        <div class="case-icon">
+                            <i class="fas fa-box-open"></i>
+                        </div>
+                        <h3>Обычный кейс</h3>
+                        <p>Шанс на хороший приз</p>
+                        <button class="open-btn">100 <i class="fas fa-coins"></i></button>
                     </div>
                 </div>
             </div>
-        </div>
 
             <!-- Вкладка профиля (изначально скрыта) -->
             <div class="tab-content hidden" id="profile-tab">
@@ -339,19 +128,19 @@
 
         <!-- Нижнее меню -->
         <nav class="bottom-nav">
-            <a href="#" class="nav-item active" data-tab="home-tab" id="home-nav">
+            <a href="#" class="nav-item active" data-tab="home-tab">
                 <i class="fas fa-home"></i>
                 <span>Главная</span>
             </a>
-            <a href="#" class="nav-item" data-tab="gifts-tab" id="gifts-nav">
+            <a href="#" class="nav-item" data-tab="gifts-tab">
                 <i class="fas fa-gift"></i>
                 <span>Подарки</span>
             </a>
-            <a href="#" class="nav-item" data-tab="shop-tab" id="shop-nav">
+            <a href="#" class="nav-item" data-tab="shop-tab">
                 <i class="fas fa-shopping-cart"></i>
                 <span>Магазин</span>
             </a>
-            <a href="#" class="nav-item" data-tab="profile-tab" id="profile-nav">
+            <a href="#" class="nav-item" data-tab="profile-tab">
                 <i class="fas fa-user"></i>
                 <span>Профиль</span>
             </a>

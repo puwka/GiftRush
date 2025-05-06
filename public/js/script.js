@@ -211,6 +211,32 @@ async function depositBalance(amount) {
   }
 }
 
+// Глобальная функция для открытия страницы кейса
+window.openCasePage = function(caseId, event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    window.location.href = `case.html?id=${caseId}`;
+}
+
+// В функции setupEventListeners добавляем обработчики для всех кейсов
+function setupEventListeners() {
+    // ... остальной код ...
+    
+    // Добавляем обработчики для кейсов
+    document.querySelectorAll('.case-item').forEach(caseItem => {
+        caseItem.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const caseId = this.getAttribute('data-case-id');
+            if (caseId) {
+                window.location.href = `case.html?id=${caseId}`;
+            }
+        });
+    });
+}
+
 // Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', function() {
   initApp()

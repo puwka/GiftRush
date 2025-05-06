@@ -33,9 +33,7 @@ async function initApp() {
       
       // Загружаем статистику
       await loadUserStats(user.tg_id)
-      
-      // Загружаем кейсы
-      await loadCases()
+
     } catch (error) {
       console.error('Ошибка инициализации:', error)
     }

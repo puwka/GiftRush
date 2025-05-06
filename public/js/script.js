@@ -197,153 +197,320 @@ function renderCases(cases) {
   })
 }
 
+// Функция открытия страницы кейса
+async function showCasePage(caseId) {
+    try {
+        // Получаем информацию о кейсе
+        const { data: caseData, error: caseError } = await supabase
+            .from('cases')
+            .select('*')
+            .eq('id', caseId)
+            .single()
+        
+        if (caseError) throw caseError
+        
+        // Получаем предметы из кейса
+        const { data: items, error: itemsError } = await supabase
+            .from('nft_items')
+            .select('*')
+            .eq('case_id', caseId)
+            .order('probability', { ascending: true })
+        
+        if (itemsError) throw itemsError
+        
+        // Заполняем данные на странице кейса
+        document.getElementById('case-page-image').src = caseData.image_url
+        document.getElementById('case-page-title').textContent = caseData.name
+        document.getElementById('case-page-description').textContent = caseData.description
+        document.getElementById('case-page-price').textContent = caseData.price
+        document.getElementById('single-price').textContent = caseData.price
+        document.getElementById('triple-price').textContent = caseData.price * 3
+        
+        // Обновляем баланс на странице кейса
+        if (tg.initDataUnsafe?.user?.id) {
+            const { data: userData } = await supabase
+                .from('users')
+                .select('balance')
+                .eq('tg_id', tg.initDataUnsafe.user.id)
+                .single()
+            
+            if (userData) {
+                document.getElementById('case-page-balance').textContent = userData.balance
+            }
+        }
+        
+        // Рендерим предметы кейса
+        const itemsContainer = document.getElementById('case-items-container')
+        itemsContainer.innerHTML = ''
+        
+        items.forEach(item => {
+            const itemElement = document.createElement('div')
+            itemElement.className = 'item-card'
+            itemElement.innerHTML = `
+                <img src="${item.animation_url || item.image_url}" alt="${item.name}" class="item-image">
+                <div class="item-name">${item.name}</div>
+                <div class="item-rarity ${item.rarity}">${getRarityName(item.rarity)}</div>
+                <div class="item-value"><i class="fas fa-coins"></i> ${item.value}</div>
+            `
+            itemsContainer.appendChild(itemElement)
+        })
+        
+        // Показываем страницу кейса
+        document.getElementById('main-container').classList.add('hidden')
+        document.getElementById('case-page-container').classList.remove('hidden')
+        
+        // Обработчики для кнопок открытия
+        document.getElementById('open-single-btn').onclick = () => openCase(caseId, 1)
+        document.getElementById('open-triple-btn').onclick = () => openCase(caseId, 3)
+        
+    } catch (error) {
+        console.error('Ошибка загрузки страницы кейса:', error)
+        showNotification('Не удалось загрузить информацию о кейсе')
+    }
+}
+
 // Функция открытия кейса
-async function openCase(caseId) {
-  if (!tg.initDataUnsafe?.user?.id) {
-    showNotification('Для открытия кейсов необходимо авторизоваться')
-    return
-  }
+async function openCase(caseId, count = 1) {
+    if (!tg.initDataUnsafe?.user?.id) {
+        showNotification('Для открытия кейсов необходимо авторизоваться')
+        return
+    }
 
-  try {
-    // 1. Проверяем баланс пользователя
-    const userId = tg.initDataUnsafe.user.id
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('balance')
-      .eq('tg_id', userId)
-      .single()
+    try {
+        const userId = tg.initDataUnsafe.user.id
+        
+        // 1. Проверяем баланс пользователя
+        const { data: user, error: userError } = await supabase
+            .from('users')
+            .select('balance')
+            .eq('tg_id', userId)
+            .single()
+        
+        if (userError) throw userError
+        
+        // 2. Получаем информацию о кейсе
+        const { data: caseData, error: caseError } = await supabase
+            .from('cases')
+            .select('price, name, image_url')
+            .eq('id', caseId)
+            .single()
+        
+        if (caseError) throw caseError
+        
+        const totalPrice = caseData.price * count
+        
+        if (user.balance < totalPrice) {
+            showNotification(`Недостаточно средств. Нужно ${totalPrice} монет.`)
+            return
+        }
+        
+        // 3. Получаем предметы из кейса
+        const { data: items, error: itemsError } = await supabase
+            .from('nft_items')
+            .select('*')
+            .eq('case_id', caseId)
+        
+        if (itemsError) throw itemsError
+        
+        if (!items.length) {
+            throw new Error('В этом кейсе нет предметов')
+        }
+        
+        // 4. Показываем рулетку
+        showRoulette(items)
+        
+        // 5. Выбираем предметы с учетом вероятностей
+        const wonItems = []
+        for (let i = 0; i < count; i++) {
+            const prize = selectPrizeByProbability(items)
+            wonItems.push(prize)
+        }
+        
+        // 6. Обновляем баланс пользователя
+        const { error: balanceError } = await supabase
+            .from('users')
+            .update({ balance: user.balance - totalPrice })
+            .eq('tg_id', userId)
+        
+        if (balanceError) throw balanceError
+        
+        // 7. Добавляем предметы в инвентарь пользователя
+        for (const prize of wonItems) {
+            const { error: inventoryError } = await supabase
+                .from('user_inventory')
+                .insert({
+                    user_id: userId,
+                    nft_item_id: prize.id,
+                    acquired_at: new Date().toISOString()
+                })
+            
+            if (inventoryError) throw inventoryError
+        }
+        
+        // 8. Записываем транзакцию
+        await supabase
+            .from('transactions')
+            .insert({
+                user_id: userId,
+                amount: -totalPrice,
+                type: 'case_open',
+                description: `Открытие ${count} кейса "${caseData.name}"`
+            })
+        
+        // 9. Записываем историю открытий
+        for (const prize of wonItems) {
+            await supabase
+                .from('opened_cases')
+                .insert({
+                    user_id: userId,
+                    case_id: caseId,
+                    item_id: prize.id,
+                    case_type: caseData.name,
+                    price_value: caseData.price,
+                    price_description: `${caseData.price} монет`,
+                    opened_at: new Date().toISOString()
+                })
+        }
+        
+        // 10. Запускаем анимацию рулетки
+        animateRoulette(items, wonItems)
+        
+        // 11. Показываем выигранные предметы после анимации
+        setTimeout(() => {
+            showWonItems(wonItems)
+            
+            // Обновляем баланс в интерфейсе
+            const newBalance = user.balance - totalPrice
+            userBalance.textContent = newBalance
+            document.getElementById('case-page-balance').textContent = newBalance
+            statBalance.textContent = newBalance
+            
+            // Обновляем статистику
+            loadUserStats(userId)
+        }, 5000)
+        
+    } catch (error) {
+        console.error('Ошибка открытия кейса:', error)
+        showNotification('Произошла ошибка при открытии кейса')
+        hideRoulette()
+    }
+}
+
+// Показать рулетку
+function showRoulette(items) {
+    const openingSection = document.getElementById('opening-section')
+    const rouletteTrack = document.getElementById('roulette-track')
     
-    if (userError) throw userError
+    // Очищаем предыдущие элементы
+    rouletteTrack.innerHTML = ''
     
-    // 2. Получаем информацию о кейсе
-    const { data: caseData, error: caseError } = await supabase
-      .from('cases')
-      .select('price, name, image_url')
-      .eq('id', caseId)
-      .single()
-    
-    if (caseError) throw caseError
-    
-    if (user.balance < caseData.price) {
-      showNotification(`Недостаточно средств. Нужно ${caseData.price} монет.`)
-      return
+    // Создаем много копий предметов для плавной анимации
+    const itemsToShow = []
+    for (let i = 0; i < 20; i++) {
+        itemsToShow.push(...items)
     }
     
-    // 3. Показываем анимацию открытия
-    showCaseOpeningAnimation(caseData)
+    // Добавляем элементы в рулетку
+    itemsToShow.forEach(item => {
+        const itemElement = document.createElement('div')
+        itemElement.className = 'roulette-item'
+        itemElement.innerHTML = `
+            <img src="${item.animation_url || item.image_url}" alt="${item.name}">
+            <div class="item-rarity ${item.rarity}">${getRarityName(item.rarity)}</div>
+        `
+        rouletteTrack.appendChild(itemElement)
+    })
     
-    // 4. Получаем предметы из кейса
-    const { data: items, error: itemsError } = await supabase
-      .from('nft_items')
-      .select('*')
-      .eq('case_id', caseId)
+    // Показываем секцию с рулеткой
+    openingSection.classList.remove('hidden')
+    document.getElementById('opening-result').classList.add('hidden')
+}
+
+// Анимация рулетки
+function animateRoulette(items, wonItems) {
+    const rouletteTrack = document.getElementById('roulette-track')
+    const itemWidth = 140 // Ширина одного элемента рулетки
+    const totalItems = rouletteTrack.children.length
+    const totalWidth = totalItems * itemWidth
     
-    if (itemsError) throw itemsError
+    // Начальное положение - в середине
+    let currentPosition = -totalWidth / 2
+    rouletteTrack.style.transform = `translateX(${currentPosition}px)`
     
-    if (!items.length) {
-      throw new Error('В этом кейсе нет предметов')
+    // Скорость анимации
+    let speed = 50
+    let deceleration = 0.02
+    let targetPosition = 0
+    
+    // Вычисляем позицию, где должен остановиться первый выигранный предмет
+    const wonItemIndex = items.findIndex(item => item.id === wonItems[0].id)
+    if (wonItemIndex !== -1) {
+        // Позиция так, чтобы выигранный предмет оказался по центру
+        targetPosition = -wonItemIndex * itemWidth - (20 * items.length * itemWidth) + (window.innerWidth / 2 - itemWidth / 2)
     }
     
-    // Выбираем предмет с учетом вероятностей
-    const prize = selectPrizeByProbability(items)
+    const animate = () => {
+        // Замедляем
+        if (speed > 1) {
+            speed -= deceleration
+            deceleration *= 1.02 // Увеличиваем замедление со временем
+        } else {
+            // Точная остановка на выигранном предмете
+            const distance = targetPosition - currentPosition
+            currentPosition += distance * 0.1
+            
+            if (Math.abs(distance) < 1) {
+                currentPosition = targetPosition
+                rouletteTrack.style.transform = `translateX(${currentPosition}px)`
+                
+                // Помечаем выигранные предметы
+                wonItems.forEach((wonItem, index) => {
+                    const wonIndex = (wonItemIndex + index * 3) % items.length
+                    const elements = rouletteTrack.querySelectorAll('.roulette-item')
+                    elements[wonIndex].classList.add('winner')
+                })
+                
+                return
+            }
+        }
+        
+        currentPosition -= speed
+        rouletteTrack.style.transform = `translateX(${currentPosition}px)`
+        
+        // Бесконечная прокрутка
+        if (-currentPosition > totalWidth / 2) {
+            currentPosition += totalWidth / 2
+        }
+        
+        requestAnimationFrame(animate)
+    }
     
-    // 5. Обновляем баланс пользователя
-    const { error: balanceError } = await supabase
-      .from('users')
-      .update({ balance: user.balance - caseData.price })
-      .eq('tg_id', userId)
-    
-    if (balanceError) throw balanceError
-    
-    // 6. Добавляем предмет в инвентарь пользователя
-    const { error: inventoryError } = await supabase
-      .from('user_inventory')
-      .insert({
-        user_id: userId,
-        nft_item_id: prize.id,
-        acquired_at: new Date().toISOString()
-      })
-    
-    if (inventoryError) throw inventoryError
-    
-    // 7. Записываем транзакцию
-    await supabase
-      .from('transactions')
-      .insert({
-        user_id: userId,
-        amount: -caseData.price,
-        type: 'case_open',
-        description: `Открытие кейса "${caseData.name}"`
-      })
-    
-    // 8. Показываем выигранный предмет
-    setTimeout(() => {
-      showPrize(prize)
-      
-      // Обновляем баланс в интерфейсе
-      const newBalance = user.balance - caseData.price
-      userBalance.textContent = newBalance
-      statBalance.textContent = newBalance
-      
-      // Обновляем статистику
-      loadUserStats(userId)
-    }, 1500)
-    
-  } catch (error) {
-    console.error('Ошибка открытия кейса:', error)
-    showNotification('Произошла ошибка при открытии кейса')
-    hideCaseOpening()
-  }
+    animate()
 }
 
-// Анимация открытия кейса
-function showCaseOpeningAnimation(caseData) {
-  const openingDiv = document.createElement('div')
-  openingDiv.className = 'case-opening'
-  openingDiv.innerHTML = `
-    <img src="${caseData.image_url}" class="opening-case-image" alt="${caseData.name}">
-    <div class="prize-item hidden">
-      <img src="" class="prize-image" alt="Приз">
-      <h3 class="prize-name"></h3>
-      <span class="prize-rarity"></span>
-      <div class="prize-value"></div>
-      <button class="close-opening">Закрыть</button>
-    </div>
-  `
-  
-  document.body.appendChild(openingDiv)
-  setTimeout(() => openingDiv.classList.add('active'), 50)
-  
-  // Обработчик закрытия
-  openingDiv.querySelector('.close-opening')?.addEventListener('click', hideCaseOpening)
+// Показать выигранные предметы
+function showWonItems(wonItems) {
+    const wonItemsContainer = document.getElementById('won-items')
+    wonItemsContainer.innerHTML = ''
+    
+    wonItems.forEach(item => {
+        const itemElement = document.createElement('div')
+        itemElement.className = 'won-item'
+        itemElement.innerHTML = `
+            <img src="${item.animation_url || item.image_url}" alt="${item.name}">
+            <div class="won-item-name">${item.name}</div>
+            <div class="won-item-rarity ${item.rarity}">${getRarityName(item.rarity)}</div>
+            <div class="won-item-value"><i class="fas fa-coins"></i> ${item.value}</div>
+        `
+        wonItemsContainer.appendChild(itemElement)
+    })
+    
+    document.getElementById('opening-result').classList.remove('hidden')
 }
 
-function showPrize(prize) {
-  const openingDiv = document.querySelector('.case-opening')
-  if (!openingDiv) return
-  
-  const prizeItem = openingDiv.querySelector('.prize-item')
-  const prizeImage = openingDiv.querySelector('.prize-image')
-  const prizeName = openingDiv.querySelector('.prize-name')
-  const prizeRarity = openingDiv.querySelector('.prize-rarity')
-  const prizeValue = openingDiv.querySelector('.prize-value')
-  
-  prizeImage.src = prize.animation_url || prize.image_url
-  prizeImage.alt = prize.name
-  prizeName.textContent = prize.name
-  prizeRarity.textContent = getRarityName(prize.rarity)
-  prizeRarity.className = `prize-rarity ${prize.rarity}`
-  prizeValue.innerHTML = `<i class="fas fa-coins"></i> ${prize.value}`
-  
-  prizeItem.classList.remove('hidden')
-}
-
-function hideCaseOpening() {
-  const openingDiv = document.querySelector('.case-opening')
-  if (openingDiv) {
-    openingDiv.classList.remove('active')
-    setTimeout(() => openingDiv.remove(), 300)
-  }
+// Скрыть рулетку
+function hideRoulette() {
+    document.getElementById('opening-section').classList.add('hidden')
 }
 
 // Вспомогательные функции
@@ -424,11 +591,11 @@ function initTelegramWebApp() {
 }
 
 function setupEventListeners() {
-  // Обработчики кнопок открытия кейсов
+  // Обработчики кнопок открытия страниц кейсов
   document.addEventListener('click', function(e) {
-    if (e.target.closest('.open-case-btn')) {
+    if (e.target.closest('.case-item')) {
       const caseId = e.target.closest('.case-item').dataset.caseId
-      openCase(caseId)
+      showCasePage(caseId)
     }
   })
   
@@ -479,6 +646,16 @@ function setupEventListeners() {
       document.getElementById('profile-tab').classList.remove('hidden')
     }
   })
+  
+  // Обработчик кнопки "Назад"
+  document.getElementById('back-to-main')?.addEventListener('click', () => {
+    document.getElementById('main-container').classList.remove('hidden')
+    document.getElementById('case-page-container').classList.add('hidden')
+    hideRoulette()
+  })
+  
+  // Обработчик кнопки "Забрать призы"
+  document.getElementById('close-opening-btn')?.addEventListener('click', hideRoulette)
 }
 
 // Функция пополнения баланса

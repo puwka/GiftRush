@@ -250,15 +250,19 @@ function setupEventListeners() {
   })
   
   // Обработчики кликов по карточкам кейсов
-  document.addEventListener('click', function(e) {
-    const caseItem = e.target.closest('.case-item')
-    if (caseItem) {
-      const caseId = caseItem.dataset.caseId
-      if (caseId) {
-        window.location.href = `case.html?id=${caseId}`
-      }
-    }
-  })
+    // Обработчики кликов по карточкам кейсов
+    document.addEventListener('click', function(e) {
+        const caseItem = e.target.closest('.case-item')
+        if (caseItem) {
+        const caseId = caseItem.dataset.caseId
+        if (caseId) {
+            // Сохраняем текущий URL для возможности возврата
+            sessionStorage.setItem('previousUrl', window.location.href)
+            // Переходим на страницу кейса
+            window.location.href = `case.html?id=${caseId}`
+        }
+        }
+    })
   
   // Кнопка пополнения баланса
   document.querySelector('.action-btn.purple')?.addEventListener('click', function() {

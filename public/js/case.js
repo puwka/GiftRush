@@ -42,21 +42,12 @@ let currentCaseId = null
 // Основная функция инициализации
 async function initApp() {
     // Получаем ID кейса из URL
-    let currentCaseId;
+    const urlParams = new URLSearchParams(window.location.search);
+    currentCaseId = urlParams.get('id');
     
-    // Проверяем разные форматы URL
-    if (window.location.pathname.startsWith('/case/')) {
-        // Формат /case/1
-        currentCaseId = window.location.pathname.split('/')[2];
-    } else {
-        // Формат case.html?id=1
-        const urlParams = new URLSearchParams(window.location.search);
-        currentCaseId = urlParams.get('id');
-    }
-    
-    if (!currentCaseId || isNaN(currentCaseId)) {
+    if (!currentCaseId) {
         tg.showAlert?.('Кейс не найден');
-        window.location.href = '/index.html';
+        window.location.href = 'index.html';
         return;
     }
 

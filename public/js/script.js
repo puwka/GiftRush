@@ -18,7 +18,11 @@ const avatarElement = document.querySelector('.avatar')
 const statBalance = document.querySelector('.stat-item:nth-child(1) .stat-value')
 const statCases = document.querySelector('.stat-item:nth-child(2) .stat-value')
 const statPrizes = document.querySelector('.stat-item:nth-child(3) .stat-value')
-const casesContainer = document.getElementById('cases-container')
+
+// Глобальная функция для открытия страницы кейса
+window.openCasePage = function(caseId) {
+    window.location.href = `case.html?id=${caseId}`;
+}
 
 // Основная функция инициализации
 async function initApp() {
@@ -33,9 +37,6 @@ async function initApp() {
       
       // Загружаем статистику
       await loadUserStats(user.tg_id)
-      
-      // Загружаем кейсы
-      await loadCases()
     } catch (error) {
       console.error('Ошибка инициализации:', error)
     }
@@ -43,78 +44,6 @@ async function initApp() {
     console.log('Пользователь Telegram не авторизован')
   }
 }
-
-// Загрузка кейсов из базы данных
-async function loadCases() {
-  try {
-    const { data: cases, error } = await supabase
-      .from('cases')
-      .select('*')
-      .order('price', { ascending: true })
-    
-    if (error) throw error
-    
-    // Группируем кейсы по категориям
-    const freeCases = cases.filter(c => c.type === 'free')
-    const nftCases = cases.filter(c => c.type === 'nft')
-    const farmCases = cases.filter(c => c.type === 'farm')
-    const otherCases = cases.filter(c => !['free', 'nft', 'farm'].includes(c.type))
-    
-    // Очищаем контейнер
-    casesContainer.innerHTML = ''
-    
-    // Добавляем кейсы по категориям
-    if (freeCases.length > 0) {
-      casesContainer.innerHTML += '<h2 class="category-title">Бесплатные кейсы</h2>'
-      freeCases.forEach(c => casesContainer.appendChild(createCaseElement(c)))
-    }
-    
-    if (nftCases.length > 0) {
-      casesContainer.innerHTML += '<h2 class="category-title">NFT кейсы</h2>'
-      nftCases.forEach(c => casesContainer.appendChild(createCaseElement(c)))
-    }
-    
-    if (farmCases.length > 0) {
-      casesContainer.innerHTML += '<h2 class="category-title">Фарм кейсы</h2>'
-      farmCases.forEach(c => casesContainer.appendChild(createCaseElement(c)))
-    }
-    
-    if (otherCases.length > 0) {
-      casesContainer.innerHTML += '<h2 class="category-title">Другие кейсы</h2>'
-      otherCases.forEach(c => casesContainer.appendChild(createCaseElement(c)))
-    }
-    
-  } catch (error) {
-    console.error('Ошибка загрузки кейсов:', error)
-    casesContainer.innerHTML = '<p>Не удалось загрузить кейсы. Пожалуйста, попробуйте позже.</p>'
-  }
-}
-
-// Создание элемента кейса
-function createCaseElement(caseData) {
-    const caseItem = document.createElement('div') // Изменил с 'a' на 'div'
-    caseItem.className = `case-item ${caseData.type}`
-    caseItem.dataset.caseId = caseData.id
-    
-    caseItem.innerHTML = `
-      <div class="case-preview">
-        <img src="${caseData.image_url}" alt="${caseData.name}">
-      </div>
-      <div class="case-info">
-        <h3 class="case-name">${caseData.name}</h3>
-        <div class="case-price">
-          <i class="fas fa-coins"></i> ${caseData.price}
-        </div>
-      </div>
-    `
-    
-    // Добавляем обработчик клика
-    caseItem.addEventListener('click', () => {
-      window.location.href = `case.html?id=${caseData.id}`
-    })
-    
-    return caseItem
-  }
 
 // Сохранение/обновление пользователя
 async function upsertUser(tgUser) {
@@ -196,6 +125,88 @@ function updateUI(user) {
 
 // Обработчики кнопок
 function setupEventListeners() {
+  // Кнопки открытия кейсов
+    document.querySelectorAll('.open-btn').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const caseType = this.closest('.case-item').classList.contains('premium') ? 'premium' : 'regular'
+      const cost = caseType === 'premium' ? 500 : 100
+      
+      try {
+        // Проверяем баланс
+        const { data: user, error: userError } = await supabase
+          .from('users')
+          .select('balance')
+          .eq('tg_id', tg.initDataUnsafe.user.id)
+          .single()
+        
+        if (userError) throw userError
+        
+        if (user.balance < cost) {
+          alert('Недостаточно средств на балансе')
+          return
+        }
+        
+        // Открываем кейс (симуляция)
+        const prizeValue = calculatePrize(caseType)
+        const prizeDescription = getPrizeDescription(prizeValue, caseType)
+        
+        // Обновляем баланс
+        const { error: balanceError } = await supabase
+          .from('users')
+          .update({ balance: user.balance - cost + prizeValue })
+          .eq('tg_id', tg.initDataUnsafe.user.id)
+        
+        if (balanceError) throw balanceError
+        
+        // Записываем транзакцию
+        await supabase
+          .from('transactions')
+          .insert({
+            user_id: tg.initDataUnsafe.user.id,
+            amount: -cost,
+            type: 'case_open',
+            description: `Открытие ${caseType === 'premium' ? 'премиум' : 'обычного'} кейса`
+          })
+        
+        // Если выигрыш > 0, добавляем запись о выигрыше
+        if (prizeValue > 0) {
+          await supabase
+            .from('transactions')
+            .insert({
+              user_id: tg.initDataUnsafe.user.id,
+              amount: prizeValue,
+              type: 'prize',
+              description: prizeDescription
+            })
+        }
+        
+        // Записываем открытие кейса
+        await supabase
+          .from('opened_cases')
+          .insert({
+            user_id: tg.initDataUnsafe.user.id,
+            case_type: caseType,
+            prize_value: prizeValue,
+            prize_description: prizeDescription
+          })
+        
+        // Обновляем UI
+        userBalance.textContent = user.balance - cost + prizeValue
+        statBalance.textContent = user.balance - cost + prizeValue
+        
+        // Показываем результат
+        alert(`Вы открыли кейс и получили: ${prizeDescription}`)
+        
+        // Перезагружаем статистику
+        await loadUserStats(tg.initDataUnsafe.user.id)
+
+      } catch (error) {
+        console.error('Ошибка открытия кейса:', error)
+        alert('Произошла ошибка при открытии кейса')
+      }
+    })
+  })
+  
   // Кнопка пополнения баланса
   document.querySelector('.action-btn.purple').addEventListener('click', function() {
     tg.showPopup({
@@ -215,35 +226,17 @@ function setupEventListeners() {
     })
   })
 
-  // Фильтрация кейсов
-  document.querySelectorAll('.category-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'))
-      this.classList.add('active')
-      
-      const category = this.dataset.category
-      document.querySelectorAll('.case-item').forEach(item => {
-        if (category === 'all' || item.classList.contains(category)) {
-          item.style.display = ''
-        } else {
-          item.style.display = 'none'
+  // Обработчики для кейсов
+  document.querySelectorAll('.case-item').forEach(caseItem => {
+    caseItem.addEventListener('click', function(e) {
+        // Предотвращаем всплытие, если нужно
+        e.stopPropagation();
+        const caseId = this.dataset.caseId;
+        if (caseId) {
+            window.openCasePage(caseId);
         }
-      })
-      
-      // Показываем/скрываем заголовки категорий
-      document.querySelectorAll('.category-title').forEach(title => {
-        const categoryName = title.textContent.replace(' кейсы', '').toLowerCase()
-        if (category === 'all' || 
-            (category === 'free' && categoryName.includes('бесплат')) ||
-            (category === 'nft' && categoryName.includes('nft')) ||
-            (category === 'farm' && categoryName.includes('фарм'))) {
-          title.style.display = ''
-        } else {
-          title.style.display = 'none'
-        }
-      })
-    })
-  })
+    });
+  });
 }
 
 // Функция пополнения баланса
@@ -285,6 +278,30 @@ async function depositBalance(amount) {
     console.error('Ошибка пополнения баланса:', error)
     tg.showAlert('Произошла ошибка при пополнении баланса')
   }
+}
+
+// Вспомогательные функции для кейсов
+function calculatePrize(caseType) {
+  // Логика расчета приза
+  if (caseType === 'premium') {
+    const rand = Math.random()
+    if (rand < 0.6) return 200 // 60% chance
+    if (rand < 0.85) return 500 // 25% chance
+    if (rand < 0.95) return 1000 // 10% chance
+    return 5000 // 5% chance
+  } else {
+    const rand = Math.random()
+    if (rand < 0.7) return 50 // 70% chance
+    if (rand < 0.9) return 100 // 20% chance
+    return 500 // 10% chance
+  }
+}
+
+function getPrizeDescription(value, caseType) {
+  if (value <= 100) return `${value} монет`
+  if (value <= 500) return `Хороший приз: ${value} монет`
+  if (value <= 1000) return `Отличный приз: ${value} монет`
+  return `Джекпот! ${value} монет`
 }
 
 // Инициализация при загрузке

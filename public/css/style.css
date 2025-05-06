@@ -684,16 +684,3 @@ html {
     transform: translateY(-5px);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
-
-/* Убедимся, что курсор меняется при наведении на кейс */
-.case-item {
-    cursor: pointer;
-  }
-  
-  /* Убираем стандартные стили ссылок для контейнера кейса */
-  .cases-grid a {
-    text-decoration: none;
-    color: inherit;
-    display: block;
-    height: 100%;
-  }

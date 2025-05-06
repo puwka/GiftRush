@@ -5,6 +5,18 @@ const supabaseUrl = 'https://lhduaxfmgkxlukghaopy.supabase.co'
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoZHVheGZtZ2t4bHVrZ2hhb3B5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0ODIyMzIsImV4cCI6MjA2MjA1ODIzMn0.wjhrbM7PFLYkBb_xnPf83Tzn8dov9OYdJV5CLWSDRy4'
 const supabase = createClient(supabaseUrl, supabaseKey)
 
+// Добавьте в самое начало файла (после импортов)
+window.openCasePage = function(caseId) {
+    // Для Telegram WebApp
+    if (window.Telegram?.WebApp?.platform !== 'unknown') {
+        window.Telegram.WebApp.openTelegramLink(`https://yourdomain.com/case.html?id=${caseId}`);
+    } else {
+        // Для обычного браузера
+        window.location.href = `case.html?id=${caseId}`;
+    }
+};
+
+
 // Инициализация Telegram WebApp
 const tg = window.Telegram.WebApp
 tg.expand()
@@ -99,16 +111,6 @@ async function loadUserStats(userId) {
   } catch (error) {
 	console.error('Ошибка загрузки статистики:', error)
   }
-}
-
-function openCasePage(caseId) {
-    // Для Telegram WebApp
-    if (window.Telegram && window.Telegram.WebApp) {
-        window.Telegram.WebApp.openTelegramLink(`https://gift-rush.vercel.app/case.html?id=${caseId}`);
-    } else {
-        // Для обычного браузера
-        window.location.href = `case.html?id=${caseId}`;
-    }
 }
 
 // Обновление интерфейса

@@ -52,6 +52,11 @@ async function initApp() {
         return;
     }
 
+    if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
+        tg = window.Telegram.WebApp;
+        tg.expand();
+    }
+
     if (tg.initDataUnsafe.user) {
         userData = tg.initDataUnsafe.user;
         try {

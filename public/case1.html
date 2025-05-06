@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Игровой кейс #1 | GiftRush</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Шапка (такая же как в index.html) -->
+        <header class="header">
+            <div class="balance-card">
+                <div class="balance-content">
+                    <div class="coin-pulse">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="balance-info">
+                        <span class="balance-label">Баланс</span>
+                        <span class="balance-value" id="user-balance">10 000</span>
+                    </div>
+                </div>
+                <div class="balance-wave"></div>
+            </div>
+            
+            <div class="logo-container">
+                <div class="logo-shine"></div>
+                <h1 class="logo-text">GiftRush</h1>
+                <div class="logo-sparkles">
+                    <div class="sparkle"></div>
+                    <div class="sparkle"></div>
+                    <div class="sparkle"></div>
+                </div>
+            </div>
+            
+            <div class="profile-card" id="profile-btn">
+                <div class="profile-pic">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="online-dot"></div>
+            </div>
+        </header>
+
+        <!-- Контент страницы кейса -->
+        <main class="main-content case-page">
+            <div class="case-header">
+                <img src="public/img/photo_5238020884910959978_y.jpg" alt="Игровой кейс #1" class="case-header-image">
+                <div class="case-header-info">
+                    <h1 class="case-title">Игровой кейс #1</h1>
+                    <p class="case-description">Кейс с игровыми предметами и бонусами. Шанс выиграть редкие скины!</p>
+                    <div class="case-price-large">
+                        <i class="fas fa-coins"></i> 100
+                    </div>
+                </div>
+            </div>
+
+            <button class="open-case-btn" id="open-case-btn">
+                <i class="fas fa-gift"></i> Открыть кейс
+            </button>
+
+            <h2>Возможные призы:</h2>
+            <div class="prizes-grid">
+                <!-- Приз 1 -->
+                <div class="prize-item">
+                    <img src="https://via.placeholder.com/100/3498db/ffffff?text=AWP" alt="AWP" class="prize-image">
+                    <h3 class="prize-name">AWP | Красный линий</h3>
+                    <span class="prize-rarity rare">Rare</span>
+                </div>
+
+                <!-- Приз 2 -->
+                <div class="prize-item">
+                    <img src="https://via.placeholder.com/100/2ecc71/ffffff?text=AK-47" alt="AK-47" class="prize-image">
+                    <h3 class="prize-name">AK-47 | Красный</h3>
+                    <span class="prize-rarity uncommon">Uncommon</span>
+                </div>
+
+                <!-- Приз 3 -->
+                <div class="prize-item">
+                    <img src="https://via.placeholder.com/100/9b59b6/ffffff?text=Knife" alt="Knife" class="prize-image">
+                    <h3 class="prize-name">Нож | Фиолетовый</h3>
+                    <span class="prize-rarity epic">Epic</span>
+                </div>
+
+                <!-- Приз 4 -->
+                <div class="prize-item">
+                    <img src="https://via.placeholder.com/100/f1c40f/000000?text=Gloves" alt="Gloves" class="prize-image">
+                    <h3 class="prize-name">Перчатки | Золотые</h3>
+                    <span class="prize-rarity legendary">Legendary</span>
+                </div>
+
+                <!-- Приз 5 -->
+                <div class="prize-item">
+                    <img src="https://via.placeholder.com/100/95a5a6/ffffff?text=Key" alt="Key" class="prize-image">
+                    <h3 class="prize-name">Ключ от кейса</h3>
+                    <span class="prize-rarity common">Common</span>
+                </div>
+
+                <!-- Приз 6 -->
+                <div class="prize-item">
+                    <img src="https://via.placeholder.com/100/e74c3c/ffffff?text=Coin" alt="Coin" class="prize-image">
+                    <h3 class="prize-name">50 монет</h3>
+                    <span class="prize-rarity common">Common</span>
+                </div>
+            </div>
+        </main>
+
+        <!-- Нижнее меню (такое же как в index.html) -->
+        <nav class="bottom-nav">
+            <a href="#" class="nav-item active" data-tab="home-tab">
+                <i class="fas fa-home"></i>
+                <span>Главная</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="gifts-tab">
+                <i class="fas fa-gift"></i>
+                <span>Подарки</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="shop-tab">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Магазин</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="profile-tab">
+                <i class="fas fa-user"></i>
+                <span>Профиль</span>
+            </a>
+        </nav>
+    </div>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script type="module" src="js/case.js"></script>
+</body>
+</html>

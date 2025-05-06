@@ -46,33 +46,76 @@
         <main class="main-content">
             <!-- Главная страница -->
             <div class="tab-content" id="home-tab">
-                <div class="cases-grid">
-                    <div class="case-item">
-                        <div class="case-icon">
-                            <i class="fas fa-box-open"></i>
-                        </div>
-                        <h3>Обычный кейс</h3>
-                        <p>Шанс на хороший приз</p>
-                        <button class="open-btn">100 <i class="fas fa-coins"></i></button>
-                    </div>
+                <!-- Категории кейсов -->
+                <div class="categories-container">
+                    <div class="category active" data-category="all">Все</div>
+                    <div class="category" data-category="popular">Популярные</div>
+                    <div class="category" data-category="games">Игровые</div>
+                    <div class="category" data-category="premium">Премиум</div>
+                </div>
 
-                    <div class="case-item premium">
-                        <div class="case-icon">
+                <!-- Сетка кейсов -->
+                <div class="cases-grid">
+                    <!-- Кейс 1 -->
+                    <a href="case1.html" class="case-item">
+                        <div class="case-image-container" style="background-color: #3a1c71;">
+                            <img src="public/img/photo_5238020884910959978_y.jpg" alt="Case 1" class="case-image">
+                        </div>
+                        <div class="case-info">
+                            <h3>Игровой кейс #1</h3>
+                            <div class="case-price">
+                                <i class="fas fa-coins"></i> 100
+                            </div>
+                        </div>
+                        <div class="case-badge premium">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                    </a>
+
+                    <!-- Кейс 2 -->
+                    <a href="case2.html" class="case-item">
+                        <div class="case-image-container" style="background-color: #1a2a6c;">
+                            <img src="https://via.placeholder.com/150x150/1a2a6c/ffffff?text=Case+2" alt="Case 2" class="case-image">
+                        </div>
+                        <div class="case-info">
+                            <h3>Киберспортивный кейс</h3>
+                            <div class="case-price">
+                                <i class="fas fa-coins"></i> 250
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Кейс 3 -->
+                    <a href="case3.html" class="case-item">
+                        <div class="case-image-container" style="background-color: #b21f1f;">
+                            <img src="https://via.placeholder.com/150x150/b21f1f/ffffff?text=Case+3" alt="Case 3" class="case-image">
+                        </div>
+                        <div class="case-info">
+                            <h3>Редкий кейс</h3>
+                            <div class="case-price">
+                                <i class="fas fa-coins"></i> 500
+                            </div>
+                        </div>
+                        <div class="case-badge rare">
                             <i class="fas fa-gem"></i>
                         </div>
-                        <h3>Премиум кейс</h3>
-                        <p>Эксклюзивные призы</p>
-                        <button class="open-btn">500 <i class="fas fa-coins"></i></button>
-                    </div>
+                    </a>
 
-                    <div class="case-item">
-                        <div class="case-icon">
-                            <i class="fas fa-box-open"></i>
+                    <!-- Кейс 4 -->
+                    <a href="case4.html" class="case-item">
+                        <div class="case-image-container" style="background-color: #fdbb2d;">
+                            <img src="https://via.placeholder.com/150x150/fdbb2d/000000?text=Case+4" alt="Case 4" class="case-image">
                         </div>
-                        <h3>Обычный кейс</h3>
-                        <p>Шанс на хороший приз</p>
-                        <button class="open-btn">100 <i class="fas fa-coins"></i></button>
-                    </div>
+                        <div class="case-info">
+                            <h3>Золотой кейс</h3>
+                            <div class="case-price">
+                                <i class="fas fa-coins"></i> 1000
+                            </div>
+                        </div>
+                        <div class="case-badge legendary">
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </a>
                 </div>
             </div>
 

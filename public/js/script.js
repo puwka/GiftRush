@@ -21,78 +21,23 @@ const statPrizes = document.querySelector('.stat-item:nth-child(3) .stat-value')
 
 // Основная функция инициализации
 async function initApp() {
-    if (tg.initDataUnsafe.user) {
-        try {
-            const userData = tg.initDataUnsafe.user;
-            await upsertUser(userData);
-            await loadCases(); // Загружаем кейсы из базы данных
-            setupEventListeners();
-        } catch (error) {
-            console.error('Ошибка инициализации:', error);
-        }
-    }
-}
-
-async function loadCases() {
-    const { data: cases, error } = await supabase
-        .from('cases')
-        .select('*')
-        .order('price', { ascending: true });
-
-    if (error) {
-        console.error('Ошибка загрузки кейсов:', error);
-        return;
-    }
-
-    const casesContainer = document.getElementById('cases-container');
-    casesContainer.innerHTML = '';
-
-    // Группируем кейсы по категориям
-    const categories = {};
-    cases.forEach(caseItem => {
-        if (!categories[caseItem.type]) {
-            categories[caseItem.type] = [];
-        }
-        categories[caseItem.type].push(caseItem);
-    });
-
-    // Добавляем кейсы в DOM
-    for (const [category, caseItems] of Object.entries(categories)) {
-        // Добавляем заголовок категории
-        const categoryTitle = document.createElement('h2');
-        categoryTitle.className = 'category-title';
-        categoryTitle.textContent = getCategoryName(category);
-        casesContainer.appendChild(categoryTitle);
-
-        // Добавляем кейсы категории
-        caseItems.forEach(caseItem => {
-            const caseElement = document.createElement('div');
-            caseElement.className = `case-item ${category}`;
-            caseElement.dataset.caseId = caseItem.id;
-            caseElement.innerHTML = `
-                <div class="case-preview">
-                    <img src="${caseItem.image_url}" alt="${caseItem.name}">
-                </div>
-                <div class="case-info">
-                    <h3 class="case-name">${caseItem.name}</h3>
-                    <div class="case-price">
-                        <i class="fas fa-coins"></i> ${caseItem.price}
-                    </div>
-                </div>
-            `;
-            casesContainer.appendChild(caseElement);
-        });
-    }
-}
-
-function getCategoryName(category) {
-    const names = {
-        free: 'Бесплатные кейсы',
-        nft: 'NFT кейсы',
-        farm: 'Фарм кейсы',
-        regular: 'Обычные кейсы'
-    };
-    return names[category] || category;
+  if (tg.initDataUnsafe.user) {
+	const userData = tg.initDataUnsafe.user
+	try {
+	  // Сохраняем/обновляем пользователя
+	  const user = await upsertUser(userData)
+	  
+	  // Обновляем UI
+	  updateUI(user)
+	  
+	  // Загружаем статистику
+	  await loadUserStats(user.tg_id)
+	} catch (error) {
+	  console.error('Ошибка инициализации:', error)
+	}
+  } else {
+	console.log('Пользователь Telegram не авторизован')
+  }
 }
 
 // Сохранение/обновление пользователя
@@ -250,18 +195,13 @@ function setupEventListeners() {
 		// Перезагружаем статистику
 		await loadUserStats(tg.initDataUnsafe.user.id)
 
-        document.addEventListener('click', function(e) {
-            const caseItem = e.target.closest('.case-item');
-            if (caseItem) {
-                e.preventDefault();
-                const caseId = caseItem.dataset.caseId;
+        document.querySelectorAll('.case-item').forEach(caseItem => {
+            caseItem.addEventListener('click', function() {
+                const caseId = this.dataset.caseId;
                 if (caseId) {
-                    // Сохраняем позицию скролла
-                    sessionStorage.setItem('scrollPosition', window.scrollY);
-                    // Переходим на страницу кейса
                     window.location.href = `case.html?id=${caseId}`;
                 }
-            }
+            });
         });
 
 	  } catch (error) {
@@ -396,14 +336,3 @@ document.addEventListener('click', function(e) {
 	}
 });
 })
-
-// При загрузке страницы восстанавливаем позицию скролла
-window.addEventListener('load', () => {
-    const scrollPosition = sessionStorage.getItem('scrollPosition');
-    if (scrollPosition) {
-        window.scrollTo(0, parseInt(scrollPosition));
-        sessionStorage.removeItem('scrollPosition');
-    }
-});
-
-document.addEventListener('DOMContentLoaded', initApp);

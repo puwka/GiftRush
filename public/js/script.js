@@ -44,7 +44,7 @@ async function initApp() {
 
 // Новая функция для настройки карточек кейсов
 function setupCaseCards() {
-    const caseCards = document.querySelectorAll('.case-card')
+    const caseCards = document.querySelectorAll('.case-item')
     
     caseCards.forEach(card => {
       // Добавляем обработчик клика

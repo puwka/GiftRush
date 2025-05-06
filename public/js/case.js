@@ -6,8 +6,7 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 // Инициализация Telegram WebApp
-const tg = window.Telegram.WebApp
-tg.expand()
+let tg = window.Telegram?.WebApp || { initDataUnsafe: {} }
 
 // Элементы DOM
 const userBalance = document.getElementById('user-balance')
@@ -47,17 +46,17 @@ async function initApp() {
     currentCaseId = urlParams.get('id');
     
     if (!currentCaseId) {
-        tg.showAlert('Кейс не найден');
+        tg.showAlert?.('Кейс не найден');
         window.location.href = 'index.html';
         return;
     }
 
     if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
         tg = window.Telegram.WebApp;
-        tg.expand();
+        tg.expand?.();
     }
 
-    if (tg.initDataUnsafe.user) {
+    if (tg.initDataUnsafe?.user) {
         userData = tg.initDataUnsafe.user;
         try {
             await loadUserData();
@@ -67,15 +66,13 @@ async function initApp() {
             setupEventListeners();
         } catch (error) {
             console.error('Ошибка инициализации:', error);
-            tg.showAlert('Произошла ошибка при загрузке данных');
+            tg.showAlert?.('Произошла ошибка при загрузке данных');
             setTimeout(() => {
                 window.location.href = 'index.html';
             }, 1500);
         }
     }
 }
-
-// ... (остальной код case.js без изменений)
 
 // Загрузка данных пользователя
 async function loadUserData() {
@@ -91,24 +88,15 @@ async function loadUserData() {
 
 // Загрузка данных кейса
 async function loadCaseData() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const caseId = urlParams.get('id');
-    
-    if (!caseId) {
-        tg.showAlert('Кейс не найден');
-        window.location.href = 'index.html';
-        return;
-    }
-
     const { data, error } = await supabase
         .from('cases')
         .select('*')
-        .eq('id', caseId)
+        .eq('id', currentCaseId)
         .single();
     
     if (error || !data) {
         console.error('Ошибка загрузки кейса:', error);
-        tg.showAlert('Не удалось загрузить данные кейса');
+        tg.showAlert?.('Не удалось загрузить данные кейса');
         window.location.href = 'index.html';
         return;
     }
@@ -270,14 +258,14 @@ async function openCase() {
         
         if (userError) {
             console.error('Ошибка проверки баланса:', userError)
-            tg.showAlert('Ошибка проверки баланса')
+            tg.showAlert?.('Ошибка проверки баланса')
             resetCaseView()
             isSpinning = false
             return
         }
         
         if (user.balance < totalPrice) {
-            tg.showAlert('Недостаточно средств на балансе')
+            tg.showAlert?.('Недостаточно средств на балансе')
             resetCaseView()
             isSpinning = false
             return
@@ -506,7 +494,7 @@ async function processRealCaseOpening(winners) {
         
     } catch (error) {
         console.error('Ошибка обработки открытия кейса:', error)
-        tg.showAlert('Произошла ошибка при обработке открытия кейса')
+        tg.showAlert?.('Произошла ошибка при обработке открытия кейса')
     }
 }
 

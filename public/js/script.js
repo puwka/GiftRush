@@ -27,24 +27,44 @@ window.openCasePage = function(caseId) {
 
 // Основная функция инициализации
 async function initApp() {
-  if (tg.initDataUnsafe.user) {
-    const userData = tg.initDataUnsafe.user
-    try {
-      // Сохраняем/обновляем пользователя
-      const user = await upsertUser(userData)
-      
-      // Обновляем UI
-      updateUI(user)
-      
-      // Загружаем статистику
-      await loadUserStats(user.tg_id)
-    } catch (error) {
-      console.error('Ошибка инициализации:', error)
+    if (tg.initDataUnsafe.user) {
+      const userData = tg.initDataUnsafe.user
+      try {
+        const user = await upsertUser(userData)
+        updateUI(user)
+        await loadUserStats(user.tg_id)
+        setupCaseCards() // Добавляем инициализацию карточек
+      } catch (error) {
+        console.error('Ошибка инициализации:', error)
+      }
+    } else {
+      console.log('Пользователь Telegram не авторизован')
     }
-  } else {
-    console.log('Пользователь Telegram не авторизован')
-  }
 }
+
+// Новая функция для настройки карточек кейсов
+function setupCaseCards() {
+    const caseCards = document.querySelectorAll('.case-item free')
+    
+    caseCards.forEach(card => {
+      // Добавляем обработчик клика
+      card.addEventListener('click', function() {
+        const caseId = this.getAttribute('data-case-id')
+        window.location.href = `case.html?id=${caseId}`
+      })
+  
+      // Добавляем обработчик клавиатуры для доступности
+      card.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          const caseId = this.getAttribute('data-case-id')
+          window.location.href = `case.html?id=${caseId}`
+        }
+      })
+  
+      // Делаем карточку фокусируемой
+      card.setAttribute('tabindex', '0')
+    })
+  }
 
 // Сохранение/обновление пользователя
 async function upsertUser(tgUser) {

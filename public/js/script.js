@@ -20,8 +20,7 @@ const statCases = document.querySelector('.stat-item:nth-child(2) .stat-value')
 const statPrizes = document.querySelector('.stat-item:nth-child(3) .stat-value')
 
 // Глобальная функция для открытия страницы кейса
-window.openCasePage = function(caseId, event) {
-    event.preventDefault();
+window.openCasePage = function(caseId) {
     window.location.href = `case.html?id=${caseId}`;
     return false;
 }
@@ -39,25 +38,12 @@ async function initApp() {
       
       // Загружаем статистику
       await loadUserStats(user.tg_id)
-      
-      // Назначаем обработчики для кейсов
-      setupCaseClickHandlers();
     } catch (error) {
       console.error('Ошибка инициализации:', error)
     }
   } else {
     console.log('Пользователь Telegram не авторизован')
   }
-}
-
-// Назначение обработчиков кликов для кейсов
-function setupCaseClickHandlers() {
-    document.querySelectorAll('.case-item').forEach(item => {
-        item.addEventListener('click', function(e) {
-            const caseId = this.getAttribute('data-case-id');
-            openCasePage(caseId, e);
-        });
-    });
 }
 
 // Сохранение/обновление пользователя

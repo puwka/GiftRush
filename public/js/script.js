@@ -325,14 +325,4 @@ document.addEventListener('DOMContentLoaded', function() {
 	tabContents.forEach(content => content.classList.add('hidden'))
 	document.getElementById('profile-tab').classList.remove('hidden')
   })
-  
-  // Обработчики кликов по карточкам кейсов
-document.addEventListener('click', function(e) {
-	if (e.target.closest('.case-item')) {
-		const caseId = e.target.closest('.case-item').dataset.caseId;
-		if (caseId) {
-			openCase(caseId);
-		}
-	}
-});
 })

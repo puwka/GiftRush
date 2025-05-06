@@ -48,10 +48,7 @@ async function initApp() {
     
     if (!currentCaseId) {
         tg.showAlert('Кейс не найден');
-        // Возвращаем на главную с сохранением позиции скролла
-        setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 1500);
+        window.location.href = 'index.html';
         return;
     }
 

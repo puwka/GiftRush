@@ -101,6 +101,16 @@ async function loadUserStats(userId) {
   }
 }
 
+function openCasePage(caseId) {
+    // Для Telegram WebApp
+    if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.openTelegramLink(`https://yourdomain.com/case.html?id=${caseId}`);
+    } else {
+        // Для обычного браузера
+        window.location.href = `case.html?id=${caseId}`;
+    }
+}
+
 // Обновление интерфейса
 function updateUI(user) {
   // Шапка

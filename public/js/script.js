@@ -19,11 +19,6 @@ const statBalance = document.querySelector('.stat-item:nth-child(1) .stat-value'
 const statCases = document.querySelector('.stat-item:nth-child(2) .stat-value')
 const statPrizes = document.querySelector('.stat-item:nth-child(3) .stat-value')
 
-// Глобальная функция для открытия страницы кейса
-window.openCasePage = function(caseId) {
-    window.location.href = `case.html?id=${caseId}`;
-}
-
 // Основная функция инициализации
 async function initApp() {
   if (tg.initDataUnsafe.user) {
@@ -37,6 +32,9 @@ async function initApp() {
       
       // Загружаем статистику
       await loadUserStats(user.tg_id)
+      
+      // Настраиваем обработчики событий
+      setupEventListeners()
     } catch (error) {
       console.error('Ошибка инициализации:', error)
     }
@@ -125,90 +123,17 @@ function updateUI(user) {
 
 // Обработчики кнопок
 function setupEventListeners() {
-  // Кнопки открытия кейсов
-    document.querySelectorAll('.open-btn').forEach(btn => {
-    btn.addEventListener('click', async function() {
-      const caseType = this.closest('.case-item').classList.contains('premium') ? 'premium' : 'regular'
-      const cost = caseType === 'premium' ? 500 : 100
-      
-      try {
-        // Проверяем баланс
-        const { data: user, error: userError } = await supabase
-          .from('users')
-          .select('balance')
-          .eq('tg_id', tg.initDataUnsafe.user.id)
-          .single()
-        
-        if (userError) throw userError
-        
-        if (user.balance < cost) {
-          alert('Недостаточно средств на балансе')
-          return
-        }
-        
-        // Открываем кейс (симуляция)
-        const prizeValue = calculatePrize(caseType)
-        const prizeDescription = getPrizeDescription(prizeValue, caseType)
-        
-        // Обновляем баланс
-        const { error: balanceError } = await supabase
-          .from('users')
-          .update({ balance: user.balance - cost + prizeValue })
-          .eq('tg_id', tg.initDataUnsafe.user.id)
-        
-        if (balanceError) throw balanceError
-        
-        // Записываем транзакцию
-        await supabase
-          .from('transactions')
-          .insert({
-            user_id: tg.initDataUnsafe.user.id,
-            amount: -cost,
-            type: 'case_open',
-            description: `Открытие ${caseType === 'premium' ? 'премиум' : 'обычного'} кейса`
-          })
-        
-        // Если выигрыш > 0, добавляем запись о выигрыше
-        if (prizeValue > 0) {
-          await supabase
-            .from('transactions')
-            .insert({
-              user_id: tg.initDataUnsafe.user.id,
-              amount: prizeValue,
-              type: 'prize',
-              description: prizeDescription
-            })
-        }
-        
-        // Записываем открытие кейса
-        await supabase
-          .from('opened_cases')
-          .insert({
-            user_id: tg.initDataUnsafe.user.id,
-            case_type: caseType,
-            prize_value: prizeValue,
-            prize_description: prizeDescription
-          })
-        
-        // Обновляем UI
-        userBalance.textContent = user.balance - cost + prizeValue
-        statBalance.textContent = user.balance - cost + prizeValue
-        
-        // Показываем результат
-        alert(`Вы открыли кейс и получили: ${prizeDescription}`)
-        
-        // Перезагружаем статистику
-        await loadUserStats(tg.initDataUnsafe.user.id)
-
-      } catch (error) {
-        console.error('Ошибка открытия кейса:', error)
-        alert('Произошла ошибка при открытии кейса')
-      }
-    })
+  // Кнопка профиля в хедере
+  profileBtn.addEventListener('click', function() {
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'))
+    document.querySelector('.nav-item[data-tab="profile-tab"]').classList.add('active')
+    
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'))
+    document.getElementById('profile-tab').classList.remove('hidden')
   })
   
   // Кнопка пополнения баланса
-  document.querySelector('.action-btn.purple').addEventListener('click', function() {
+  document.querySelector('.action-btn.purple')?.addEventListener('click', function() {
     tg.showPopup({
       title: 'Пополнение баланса',
       message: 'Выберите сумму для пополнения:',
@@ -226,17 +151,23 @@ function setupEventListeners() {
     })
   })
 
-  // Обработчики для кейсов
-  document.querySelectorAll('.case-item').forEach(caseItem => {
-    caseItem.addEventListener('click', function(e) {
-        // Предотвращаем всплытие, если нужно
-        e.stopPropagation();
-        const caseId = this.dataset.caseId;
-        if (caseId) {
-            window.openCasePage(caseId);
-        }
-    });
-  });
+  // Переключение вкладок
+  const tabLinks = document.querySelectorAll('.nav-item')
+  const tabContents = document.querySelectorAll('.tab-content')
+  
+  tabLinks.forEach(link => {
+    link.addEventListener('click', function(e) {
+      if (this.getAttribute('href') === '#') {
+        e.preventDefault()
+        
+        tabLinks.forEach(item => item.classList.remove('active'))
+        this.classList.add('active')
+        
+        tabContents.forEach(content => content.classList.add('hidden'))
+        document.getElementById(this.getAttribute('data-tab')).classList.remove('hidden')
+      }
+    })
+  })
 }
 
 // Функция пополнения баланса
@@ -280,57 +211,5 @@ async function depositBalance(amount) {
   }
 }
 
-// Вспомогательные функции для кейсов
-function calculatePrize(caseType) {
-  // Логика расчета приза
-  if (caseType === 'premium') {
-    const rand = Math.random()
-    if (rand < 0.6) return 200 // 60% chance
-    if (rand < 0.85) return 500 // 25% chance
-    if (rand < 0.95) return 1000 // 10% chance
-    return 5000 // 5% chance
-  } else {
-    const rand = Math.random()
-    if (rand < 0.7) return 50 // 70% chance
-    if (rand < 0.9) return 100 // 20% chance
-    return 500 // 10% chance
-  }
-}
-
-function getPrizeDescription(value, caseType) {
-  if (value <= 100) return `${value} монет`
-  if (value <= 500) return `Хороший приз: ${value} монет`
-  if (value <= 1000) return `Отличный приз: ${value} монет`
-  return `Джекпот! ${value} монет`
-}
-
 // Инициализация при загрузке
-document.addEventListener('DOMContentLoaded', function() {
-  initApp()
-  setupEventListeners()
-  
-  // Переключение вкладок
-  const tabLinks = document.querySelectorAll('.nav-item')
-  const tabContents = document.querySelectorAll('.tab-content')
-  
-  tabLinks.forEach(link => {
-    link.addEventListener('click', function(e) {
-      e.preventDefault()
-      
-      tabLinks.forEach(item => item.classList.remove('active'))
-      this.classList.add('active')
-      
-      tabContents.forEach(content => content.classList.add('hidden'))
-      document.getElementById(this.getAttribute('data-tab')).classList.remove('hidden')
-    })
-  })
-  
-  // Кнопка профиля в хедере
-  profileBtn.addEventListener('click', function() {
-    tabLinks.forEach(item => item.classList.remove('active'))
-    document.querySelector('.nav-item[data-tab="profile-tab"]').classList.add('active')
-    
-    tabContents.forEach(content => content.classList.add('hidden'))
-    document.getElementById('profile-tab').classList.remove('hidden')
-  })
-})
+document.addEventListener('DOMContentLoaded', initApp)

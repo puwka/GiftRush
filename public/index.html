@@ -1,314 +1,184 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>GiftRush - Открывай кейсы с призами</title>
-	<link rel="stylesheet" href="css/style.css">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Открытие кейса - GiftRush</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/case.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-	<div class="container">
-		<!-- Шапка -->
-		<header class="header">
-			<div class="balance-card">
-				<div class="balance-content">
-					<div class="coin-pulse">
-						<i class="fas fa-coins"></i>
-					</div>
-					<div class="balance-info">
-						<span class="balance-label">Баланс</span>
-						<span class="balance-value" id="user-balance">0</span>
-					</div>
-				</div>
-				<div class="balance-wave"></div>
-			</div>
-			
-			<div class="logo-container">
-				<div class="logo-shine"></div>
-				<h1 class="logo-text">GiftRush</h1>
-				<div class="logo-sparkles">
-					<div class="sparkle"></div>
-					<div class="sparkle"></div>
-					<div class="sparkle"></div>
-				</div>
-			</div>
-			
-			<div class="profile-card" id="profile-btn">
-				<div class="profile-pic">
-					<i class="fas fa-user"></i>
-				</div>
-				<div class="online-dot"></div>
-			</div>
-		</header>
+    <div class="container">
+        <!-- Шапка -->
+        <header class="header">
+            <div class="balance-card">
+                <div class="balance-content">
+                    <div class="coin-pulse">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="balance-info">
+                        <span class="balance-label">Баланс</span>
+                        <span class="balance-value" id="user-balance">0</span>
+                    </div>
+                </div>
+                <div class="balance-wave"></div>
+            </div>
+            
+            <div class="logo-container">
+                <div class="logo-shine"></div>
+                <h1 class="logo-text">GiftRush</h1>
+                <div class="logo-sparkles">
+                    <div class="sparkle"></div>
+                    <div class="sparkle"></div>
+                    <div class="sparkle"></div>
+                </div>
+            </div>
+            
+            <div class="profile-card" id="profile-btn">
+                <div class="profile-pic">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="online-dot"></div>
+            </div>
+        </header>
 
-		<!-- Основной контент -->
-		<main class="main-content">
-			<div class="tab-content" id="home-tab">
-				<!-- Категории кейсов -->
-				<div class="categories-tabs">
-				  <div class="categories-container">
-					<button class="category-btn active" data-category="all">Все</button>
-					<button class="category-btn" data-category="free">Бесплатные</button>
-					<button class="category-btn" data-category="nft">NFT</button>
-					<button class="category-btn" data-category="farm">Фарм</button>
-				  </div>
-				</div>
-				
-				<!-- Сетка кейсов -->
-				<div class="cases-grid" id="cases-container">
+        <!-- Основной контент -->
+        <main class="case-content">
+            <!-- Информация о кейсе -->
+            <div class="case-header">
+                <div class="case-image-container">
+                    <img src="" alt="Кейс" id="case-image" class="case-image">
+                    <div class="case-price" id="case-price">
+                        <i class="fas fa-coins"></i> 0
+                    </div>
+                </div>
+                <div class="case-info">
+                    <h1 id="case-name">Название кейса</h1>
+                    <p id="case-description">Описание кейса</p>
+                    <div class="case-controls">
+                        <div class="demo-toggle">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="demo-mode">
+                                <span class="slider"></span>
+                            </label>
+                            <span>Демо-режим</span>
+                        </div>
+                        <div class="quantity-selector">
+                            <button class="quantity-btn minus" id="quantity-minus">-</button>
+                            <span class="quantity-value" id="quantity-value">1</span>
+                            <button class="quantity-btn plus" id="quantity-plus">+</button>
+                        </div>
+                        <button class="open-case-btn" id="open-case-btn">
+                            <span id="open-case-text">Открыть кейс</span>
+                            <span id="open-case-price">(0 монет)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
 
-<!-- Бесплатные кейсы -->
-					<h2 class="category-title">Бесплатные кейсы</h2>
-					<a href="case.html?id=1" class="case-item free" data-case-id="1">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="Бесплатный кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">Бесплатный за пополнение 1</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 500
-							</div>
-						</div>
-					</a>
+            <!-- Рулетка -->
+            <div class="roulette-container">
+                <div class="roulette-wrapper">
+                    <div class="roulette" id="roulette">
+                        <!-- Предметы будут добавлены динамически -->
+                    </div>
+                    <div class="roulette-center"></div>
+                </div>
+                <div class="roulette-indicator"></div>
+            </div>
 
-					<a href="case.html?id=2" class="case-item free" data-case-id="2">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="Бесплатный кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">Бесплатный за пополнение 2</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 1500
-							</div>
-						</div>
-					</a>
+            <!-- Результаты открытия -->
+            <div class="results-container hidden" id="results-container">
+                <h2>Ваши выигрыши:</h2>
+                <div class="results-grid" id="results-grid">
+                    <!-- Результаты будут добавлены динамически -->
+                </div>
+            </div>
 
-					<a href="case.html?id=3" class="case-item free" data-case-id="3">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="Бесплатный кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">Бесплатный за пополнение 3</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 3000
-							</div>
-						</div>
-					</a>
+            <!-- Предметы в кейсе -->
+            <div class="items-container">
+                <h2>Предметы в кейсе</h2>
+                <div class="items-tabs">
+                    <button class="items-tab active" data-filter="all">Все</button>
+                    <button class="items-tab" data-filter="common">Обычные</button>
+                    <button class="items-tab" data-filter="uncommon">Необычные</button>
+                    <button class="items-tab" data-filter="rare">Редкие</button>
+                    <button class="items-tab" data-filter="epic">Эпические</button>
+                    <button class="items-tab" data-filter="legendary">Легендарные</button>
+                    <button class="items-tab" data-filter="nft">NFT</button>
+                </div>
+                <div class="items-grid" id="items-grid">
+                    <!-- Предметы будут добавлены динамически -->
+                </div>
+            </div>
+        </main>
 
-					<!-- NFT кейсы -->
-					<h2 class="category-title">NFT кейсы</h2>
-					<a href="case.html?id=4" class="case-item nft" data-case-id="4">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="NFT кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">NFT Стартовый</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 5000
-							</div>
-						</div>
-					</a>
+        <!-- Нижнее меню -->
+        <nav class="bottom-nav">
+            <a href="index.html" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>Кейсы</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-gift"></i>
+                <span>Подарки</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Магазин</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-user"></i>
+                <span>Профиль</span>
+            </a>
+        </nav>
+    </div>
 
-					<a href="case.html?id=5" class="case-item nft" data-case-id="5">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="NFT кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">NFT Продвинутый</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 10000
-							</div>
-						</div>
-					</a>
+    <!-- Модальное окно NFT -->
+    <div class="modal hidden" id="nft-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>NFT Приз!</h2>
+                <button class="modal-close" id="nft-modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="nft-preview">
+                    <img id="nft-image" src="" alt="NFT">
+                </div>
+                <div class="nft-info">
+                    <h3 id="nft-name">Название NFT</h3>
+                    <p id="nft-description">Описание NFT</p>
+                    <div class="nft-details">
+                        <div class="nft-detail">
+                            <span>Контракт:</span>
+                            <span id="nft-contract" class="nft-address"></span>
+                        </div>
+                        <div class="nft-detail">
+                            <span>Token ID:</span>
+                            <span id="nft-token-id"></span>
+                        </div>
+                        <div class="nft-detail">
+                            <span>Редкость:</span>
+                            <span id="nft-rarity" class="rarity-legendary">Легендарный</span>
+                        </div>
+                        <div class="nft-detail">
+                            <span>Стоимость:</span>
+                            <span id="nft-value" class="nft-value"><i class="fas fa-coins"></i> 5000</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn purple" id="nft-transfer-btn">
+                    <i class="fas fa-wallet"></i> Перевести в кошелек
+                </button>
+            </div>
+        </div>
+    </div>
 
-					<a href="case.html?id=6" class="case-item nft" data-case-id="6">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="NFT кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">NFT Профессиональный</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 20000
-							</div>
-						</div>
-					</a>
-
-					<a href="case.html?id=7" class="case-item nft" data-case-id="7">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="NFT кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">NFT Легендарный</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 50000
-							</div>
-						</div>
-					</a>
-
-					<!-- Фарм кейсы -->
-					<h2 class="category-title">Фарм кейсы</h2>
-					<a href="case.html?id=8" class="case-item farm" data-case-id="8">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="Фарм кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">Фарм Базовый</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 1000
-							</div>
-						</div>
-					</a>
-
-					<a href="case.html?id=9" class="case-item farm" data-case-id="9">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="Фарм кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">Фарм Средний</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 2500
-							</div>
-						</div>
-					</a>
-
-					<a href="case.html?id=10" class="case-item farm" data-case-id="10">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="Фарм кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">Фарм Профессиональный</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 5000
-							</div>
-						</div>
-					</a>
-
-					<a href="case.html?id=11" class="case-item farm" data-case-id="11">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="Фарм кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">Фарм Премиум</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 10000
-							</div>
-						</div>
-					</a>
-
-					<!-- Другие кейсы -->
-					<h2 class="category-title">Другие кейсы</h2>
-					<a href="case.html?id=12" class="case-item" data-case-id="12">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="Другой кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">Легендарный</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 5000
-							</div>
-						</div>
-					</a>
-
-					<a href="case.html?id=13" class="case-item" data-case-id="13">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="Другой кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">Эпический</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 3000
-							</div>
-						</div>
-					</a>
-
-					<a href="case.html?id=14" class="case-item" data-case-id="14">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="Другой кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">Редкий</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 1500
-							</div>
-						</div>
-					</a>
-				</div>
-			</div>
-
-			<!-- Вкладка профиля (изначально скрыта) -->
-			<div class="tab-content hidden" id="profile-tab">
-				<div class="profile-container">
-					<div class="profile-header">
-						<div class="avatar">
-							<i class="fas fa-user-circle"></i>
-						</div>
-						<h2>Ваш профиль</h2>
-						<p class="username">@username</p>
-					</div>
-
-					<div class="profile-stats">
-						<div class="stat-item">
-							<i class="fas fa-coins"></i>
-							<div>
-								<span class="stat-value">0</span>
-								<span class="stat-label">Баланс</span>
-							</div>
-						</div>
-						<div class="stat-item">
-							<i class="fas fa-box-open"></i>
-							<div>
-								<span class="stat-value">24</span>
-								<span class="stat-label">Открыто кейсов</span>
-							</div>
-						</div>
-						<div class="stat-item">
-							<i class="fas fa-trophy"></i>
-							<div>
-								<span class="stat-value">5</span>
-								<span class="stat-label">Выиграно призов</span>
-							</div>
-						</div>
-					</div>
-
-					<div class="profile-actions">
-						<button class="action-btn purple">
-							<i class="fas fa-wallet"></i> Пополнить баланс
-						</button>
-						<button class="action-btn dark">
-							<i class="fas fa-cog"></i> Настройки
-						</button>
-						<button class="action-btn red">
-							<i class="fas fa-sign-out-alt"></i> Выйти
-						</button>
-					</div>
-				</div>
-			</div>
-		</main>
-
-		<!-- Нижнее меню -->
-		<nav class="bottom-nav">
-			<a href="#" class="nav-item active" data-tab="home-tab">
-				<i class="fas fa-home"></i>
-				<span>Кейсы</span>
-			</a>
-			<a href="#" class="nav-item" data-tab="gifts-tab">
-				<i class="fas fa-gift"></i>
-				<span>Подарки</span>
-			</a>
-			<a href="#" class="nav-item" data-tab="shop-tab">
-				<i class="fas fa-shopping-cart"></i>
-				<span>Магазин</span>
-			</a>
-			<a href="#" class="nav-item" data-tab="profile-tab">
-				<i class="fas fa-user"></i>
-				<span>Профиль</span>
-			</a>
-		</nav>
-	</div>
-
-	<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-	<script src="https://telegram.org/js/telegram-web-app.js"></script>
-	<script type="module" src="js/script.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script type="module" src="js/case.js"></script>
 </body>
 </html>

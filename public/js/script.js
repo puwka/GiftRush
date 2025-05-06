@@ -9,7 +9,7 @@ const supabase = createClient(supabaseUrl, supabaseKey)
 window.openCasePage = function(caseId) {
     // Для Telegram WebApp
     if (window.Telegram?.WebApp?.platform !== 'unknown') {
-        window.Telegram.WebApp.openTelegramLink(`https://yourdomain.com/case.html?id=${caseId}`);
+        window.Telegram.WebApp.openTelegramLink(`https://gift-rush.vercel.app/case.html?id=${caseId}`);
     } else {
         // Для обычного браузера
         window.location.href = `case.html?id=${caseId}`;

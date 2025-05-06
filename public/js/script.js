@@ -591,6 +591,34 @@ function initTelegramWebApp() {
 }
 
 function setupEventListeners() {
+    // Обработчики для нижнего меню
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Удаляем active у всех элементов
+            document.querySelectorAll('.nav-item').forEach(navItem => {
+                navItem.classList.remove('active');
+            });
+            
+            // Добавляем active к текущему элементу
+            this.classList.add('active');
+            
+            // Здесь можно добавить логику переключения вкладок
+            const tabId = this.dataset.tab;
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            if (tabId === 'home-tab') {
+                document.getElementById('main-container').classList.remove('hidden');
+            } else if (tabId === 'profile-tab') {
+                document.getElementById('profile-tab').classList.remove('hidden');
+            }
+            // Добавьте обработку других вкладок по аналогии
+        });
+    });
+
   // Обработчики кнопок открытия страниц кейсов
   document.addEventListener('click', function(e) {
     if (e.target.closest('.case-item')) {

@@ -783,3 +783,103 @@ body {
     color: #f1c40f;
     font-weight: bold;
 }
+
+/* Анимация при наведении на кейс */
+.case-item {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.case-image-container {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 100%;
+    overflow: hidden;
+    border-radius: 10px;
+}
+
+.case-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.case-item:hover .case-image {
+    transform: scale(1.1);
+}
+
+.case-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1;
+    border-radius: 12px;
+}
+
+.case-item:hover::before {
+    opacity: 1;
+}
+
+.case-name {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    color: white;
+    font-weight: bold;
+    z-index: 2;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+}
+
+.case-item:hover .case-name {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Исправление нижнего меню */
+.bottom-nav {
+    z-index: 1000;
+}
+
+.nav-item {
+    position: relative;
+    padding: 10px 0;
+}
+
+.nav-item::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 3px;
+    background: linear-gradient(to right, #9b59b6, #f1c40f);
+    transition: width 0.3s ease;
+}
+
+.nav-item.active::after,
+.nav-item:hover::after {
+    width: 80%;
+}
+
+.nav-item i {
+    transition: transform 0.3s ease;
+}
+
+.nav-item:hover i {
+    transform: translateY(-3px);
+}

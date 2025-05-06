@@ -20,7 +20,11 @@ const statCases = document.querySelector('.stat-item:nth-child(2) .stat-value')
 const statPrizes = document.querySelector('.stat-item:nth-child(3) .stat-value')
 
 // Глобальная функция для открытия страницы кейса
-window.openCasePage = function(caseId) {
+window.openCasePage = function(caseId, event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
     window.location.href = `case.html?id=${caseId}`;
 }
 
@@ -125,6 +129,17 @@ function updateUI(user) {
 
 // Обработчики кнопок
 function setupEventListeners() {
+    document.querySelectorAll('.case-item').forEach(caseItem => {
+        caseItem.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const caseId = this.getAttribute('data-case-id');
+            if (caseId) {
+                window.location.href = `case.html?id=${caseId}`;
+            }
+        });
+    });
+
   // Кнопка пополнения баланса
   document.querySelector('.action-btn.purple').addEventListener('click', function() {
     tg.showPopup({
@@ -209,32 +224,6 @@ async function depositBalance(amount) {
     console.error('Ошибка пополнения баланса:', error)
     tg.showAlert('Произошла ошибка при пополнении баланса')
   }
-}
-
-// Глобальная функция для открытия страницы кейса
-window.openCasePage = function(caseId, event) {
-    if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-    }
-    window.location.href = `case.html?id=${caseId}`;
-}
-
-// В функции setupEventListeners добавляем обработчики для всех кейсов
-function setupEventListeners() {
-    // ... остальной код ...
-    
-    // Добавляем обработчики для кейсов
-    document.querySelectorAll('.case-item').forEach(caseItem => {
-        caseItem.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            const caseId = this.getAttribute('data-case-id');
-            if (caseId) {
-                window.location.href = `case.html?id=${caseId}`;
-            }
-        });
-    });
 }
 
 // Инициализация при загрузке

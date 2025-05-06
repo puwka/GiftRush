@@ -197,84 +197,6 @@ function renderCases(cases) {
   })
 }
 
-// Показ экрана открытия кейса
-async function showCaseScreen(caseId) {
-    try {
-      // Получаем данные о кейсе
-      const { data: caseData, error: caseError } = await supabase
-        .from('cases')
-        .select(`
-          id,
-          name,
-          description,
-          price,
-          image_url,
-          nft_items: nft_items(
-            id,
-            name,
-            image_url,
-            animation_url,
-            rarity,
-            value,
-            probability
-          )
-        `)
-        .eq('id', caseId)
-        .single()
-      
-      if (caseError) throw caseError
-      
-      // Заполняем данные на экране
-      document.querySelector('.case-opening-title').textContent = caseData.name
-      document.querySelector('.case-image-large').src = caseData.image_url
-      document.querySelector('.case-price-value').textContent = caseData.price
-      
-      // Заполняем предметы
-      const itemsGrid = document.querySelector('.case-items-grid')
-      itemsGrid.innerHTML = ''
-      
-      // Берем 6 случайных предметов для показа
-      const previewItems = getRandomItems(caseData.nft_items, 6)
-      
-      previewItems.forEach(item => {
-        const itemElement = document.createElement('div')
-        itemElement.className = 'case-item-preview'
-        itemElement.innerHTML = `
-          <img src="${item.animation_url || item.image_url}" alt="${item.name}">
-          <div class="item-name">${item.name}</div>
-          <div class="item-rarity ${item.rarity}">${getRarityName(item.rarity)}</div>
-        `
-        itemsGrid.appendChild(itemElement)
-      })
-      
-      // Показываем экран
-      document.querySelector('.case-opening-screen').classList.add('active')
-      
-      // Обработчик кнопки "Открыть"
-      const openBtn = document.querySelector('.open-case-button')
-      openBtn.onclick = () => openCase(caseData.id)
-      
-      // Проверяем баланс для активации/деактивации кнопки
-      if (tg.initDataUnsafe?.user?.id) {
-        const { data: user, error: userError } = await supabase
-          .from('users')
-          .select('balance')
-          .eq('tg_id', tg.initDataUnsafe.user.id)
-          .single()
-        
-        if (!userError) {
-          openBtn.disabled = user.balance < caseData.price
-        }
-      } else {
-        openBtn.disabled = true
-      }
-      
-    } catch (error) {
-      console.error('Ошибка загрузки кейса:', error)
-      showNotification('Не удалось загрузить кейс')
-    }
-  }
-
 // Функция открытия кейса
 async function openCase(caseId) {
   if (!tg.initDataUnsafe?.user?.id) {
@@ -283,18 +205,34 @@ async function openCase(caseId) {
   }
 
   try {
+    // 1. Проверяем баланс пользователя
     const userId = tg.initDataUnsafe.user.id
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('balance')
+      .eq('tg_id', userId)
+      .single()
     
-    // Получаем данные о кейсе
+    if (userError) throw userError
+    
+    // 2. Получаем информацию о кейсе
     const { data: caseData, error: caseError } = await supabase
       .from('cases')
-      .select('price, name')
+      .select('price, name, image_url')
       .eq('id', caseId)
       .single()
     
     if (caseError) throw caseError
     
-    // Получаем предметы кейса
+    if (user.balance < caseData.price) {
+      showNotification(`Недостаточно средств. Нужно ${caseData.price} монет.`)
+      return
+    }
+    
+    // 3. Показываем анимацию открытия
+    showCaseOpeningAnimation(caseData)
+    
+    // 4. Получаем предметы из кейса
     const { data: items, error: itemsError } = await supabase
       .from('nft_items')
       .select('*')
@@ -306,24 +244,10 @@ async function openCase(caseId) {
       throw new Error('В этом кейсе нет предметов')
     }
     
-    // Выбираем приз
+    // Выбираем предмет с учетом вероятностей
     const prize = selectPrizeByProbability(items)
     
-    // Обновляем баланс
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('balance')
-      .eq('tg_id', userId)
-      .single()
-    
-    if (userError) throw userError
-    
-    if (user.balance < caseData.price) {
-      showNotification(`Недостаточно средств. Нужно ${caseData.price} монет.`)
-      return
-    }
-    
-    // Обновляем баланс
+    // 5. Обновляем баланс пользователя
     const { error: balanceError } = await supabase
       .from('users')
       .update({ balance: user.balance - caseData.price })
@@ -331,7 +255,7 @@ async function openCase(caseId) {
     
     if (balanceError) throw balanceError
     
-    // Добавляем предмет в инвентарь
+    // 6. Добавляем предмет в инвентарь пользователя
     const { error: inventoryError } = await supabase
       .from('user_inventory')
       .insert({
@@ -342,7 +266,7 @@ async function openCase(caseId) {
     
     if (inventoryError) throw inventoryError
     
-    // Записываем транзакцию
+    // 7. Записываем транзакцию
     await supabase
       .from('transactions')
       .insert({
@@ -352,44 +276,25 @@ async function openCase(caseId) {
         description: `Открытие кейса "${caseData.name}"`
       })
     
-    // Показываем выигранный предмет
-    showPrizeResult(prize)
-    
-    // Обновляем баланс в интерфейсе
-    const newBalance = user.balance - caseData.price
-    userBalance.textContent = newBalance
-    statBalance.textContent = newBalance
-    
-    // Обновляем статистику
-    loadUserStats(userId)
+    // 8. Показываем выигранный предмет
+    setTimeout(() => {
+      showPrize(prize)
+      
+      // Обновляем баланс в интерфейсе
+      const newBalance = user.balance - caseData.price
+      userBalance.textContent = newBalance
+      statBalance.textContent = newBalance
+      
+      // Обновляем статистику
+      loadUserStats(userId)
+    }, 1500)
     
   } catch (error) {
     console.error('Ошибка открытия кейса:', error)
     showNotification('Произошла ошибка при открытии кейса')
+    hideCaseOpening()
   }
 }
-
-// Показ результата открытия
-function showPrizeResult(prize) {
-  const prizeReveal = document.querySelector('.prize-reveal')
-  prizeReveal.classList.remove('hidden')
-  
-  document.querySelector('.prize-image').src = prize.animation_url || prize.image_url
-  document.querySelector('.prize-name').textContent = prize.name
-  document.querySelector('.prize-rarity').textContent = getRarityName(prize.rarity)
-  document.querySelector('.prize-rarity').className = `prize-rarity ${prize.rarity}`
-  document.querySelector('.prize-value span').textContent = prize.value
-  
-  // Обработчик закрытия
-  document.querySelector('.close-prize-button').onclick = () => {
-    prizeReveal.classList.add('hidden')
-  }
-}
-
-// Обработчик кнопки "Назад"
-document.querySelector('.back-button').addEventListener('click', () => {
-  document.querySelector('.case-opening-screen').classList.remove('active')
-})
 
 // Анимация открытия кейса
 function showCaseOpeningAnimation(caseData) {
@@ -519,13 +424,6 @@ function initTelegramWebApp() {
 }
 
 function setupEventListeners() {
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.case-item')) {
-          const caseId = e.target.closest('.case-item').dataset.caseId
-          showCaseScreen(caseId)
-        }
-    })
-
   // Обработчики кнопок открытия кейсов
   document.addEventListener('click', function(e) {
     if (e.target.closest('.open-case-btn')) {

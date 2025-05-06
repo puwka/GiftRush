@@ -91,21 +91,24 @@ async function loadUserData() {
 
 // Загрузка данных кейса
 async function loadCaseData() {
-    const { data, error } = await supabase
-        .from('cases')
-        .select('*')
-        .eq('id', currentCaseId)
-        .single();
+    const urlParams = new URLSearchParams(window.location.search);
+    const caseId = urlParams.get('id');
     
-    if (error) {
-        console.error('Ошибка загрузки кейса:', error);
-        tg.showAlert('Не удалось загрузить данные кейса');
+    if (!caseId) {
+        tg.showAlert('Кейс не найден');
         window.location.href = 'index.html';
         return;
     }
+
+    const { data, error } = await supabase
+        .from('cases')
+        .select('*')
+        .eq('id', caseId)
+        .single();
     
-    if (!data) {
-        tg.showAlert('Кейс не найден');
+    if (error || !data) {
+        console.error('Ошибка загрузки кейса:', error);
+        tg.showAlert('Не удалось загрузить данные кейса');
         window.location.href = 'index.html';
         return;
     }

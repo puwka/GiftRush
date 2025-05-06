@@ -133,7 +133,7 @@ function updateUI(user) {
 // Обработчики кнопок
 function setupEventListeners() {
   // Кнопки открытия кейсов
-  document.querySelectorAll('.open-btn').forEach(btn => {
+    document.querySelectorAll('.open-btn').forEach(btn => {
 	btn.addEventListener('click', async function() {
 	  const caseType = this.closest('.case-item').classList.contains('premium') ? 'premium' : 'regular'
 	  const cost = caseType === 'premium' ? 500 : 100
@@ -207,15 +207,6 @@ function setupEventListeners() {
 		// Перезагружаем статистику
 		await loadUserStats(tg.initDataUnsafe.user.id)
 
-        document.querySelectorAll('.case-item').forEach(caseItem => {
-            caseItem.addEventListener('click', function() {
-                const caseId = this.dataset.caseId;
-                if (caseId) {
-                    window.location.href = `case.html?id=${caseId}`;
-                }
-            });
-        });
-
 	  } catch (error) {
 		console.error('Ошибка открытия кейса:', error)
 		alert('Произошла ошибка при открытии кейса')
@@ -241,6 +232,18 @@ function setupEventListeners() {
 	  }
 	})
   })
+
+  // Обработчики для кейсов
+  document.querySelectorAll('.case-item').forEach(caseItem => {
+    caseItem.addEventListener('click', function(e) {
+        // Предотвращаем всплытие, если нужно
+        e.stopPropagation();
+        const caseId = this.dataset.caseId;
+        if (caseId) {
+            window.openCasePage(caseId);
+        }
+    });
+});
 }
 
 // Функция пополнения баланса

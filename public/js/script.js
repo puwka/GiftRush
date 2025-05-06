@@ -92,25 +92,29 @@ async function loadCases() {
 
 // Создание элемента кейса
 function createCaseElement(caseData) {
-  const caseItem = document.createElement('a')
-  caseItem.href = `case.html?id=${caseData.id}`
-  caseItem.className = `case-item ${caseData.type}`
-  caseItem.dataset.caseId = caseData.id
-  
-  caseItem.innerHTML = `
-    <div class="case-preview">
-      <img src="${caseData.image_url}" alt="${caseData.name}">
-    </div>
-    <div class="case-info">
-      <h3 class="case-name">${caseData.name}</h3>
-      <div class="case-price">
-        <i class="fas fa-coins"></i> ${caseData.price}
+    const caseItem = document.createElement('div') // Изменил с 'a' на 'div'
+    caseItem.className = `case-item ${caseData.type}`
+    caseItem.dataset.caseId = caseData.id
+    
+    caseItem.innerHTML = `
+      <div class="case-preview">
+        <img src="${caseData.image_url}" alt="${caseData.name}">
       </div>
-    </div>
-  `
-  
-  return caseItem
-}
+      <div class="case-info">
+        <h3 class="case-name">${caseData.name}</h3>
+        <div class="case-price">
+          <i class="fas fa-coins"></i> ${caseData.price}
+        </div>
+      </div>
+    `
+    
+    // Добавляем обработчик клика
+    caseItem.addEventListener('click', () => {
+      window.location.href = `case.html?id=${caseData.id}`
+    })
+    
+    return caseItem
+  }
 
 // Сохранение/обновление пользователя
 async function upsertUser(tgUser) {

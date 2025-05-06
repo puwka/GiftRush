@@ -23,9 +23,9 @@ const statPrizes = document.querySelector('.stat-item:nth-child(3) .stat-value')
 window.openCasePage = function(caseId, event) {
     if (event) {
         event.preventDefault();
-        event.stopPropagation();
     }
     window.location.href = `case.html?id=${caseId}`;
+    return false;
 }
 
 // Основная функция инициализации
@@ -129,17 +129,6 @@ function updateUI(user) {
 
 // Обработчики кнопок
 function setupEventListeners() {
-    document.querySelectorAll('.case-item').forEach(caseItem => {
-        caseItem.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            const caseId = this.getAttribute('data-case-id');
-            if (caseId) {
-                window.location.href = `case.html?id=${caseId}`;
-            }
-        });
-    });
-
   // Кнопка пополнения баланса
   document.querySelector('.action-btn.purple').addEventListener('click', function() {
     tg.showPopup({

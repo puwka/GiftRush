@@ -21,7 +21,6 @@ const statPrizes = document.querySelector('.stat-item:nth-child(3) .stat-value')
 
 // Основная функция инициализации
 async function initApp() {
-  // Инициализация Telegram пользователя
   if (tg.initDataUnsafe.user) {
     const userData = tg.initDataUnsafe.user
     try {
@@ -39,17 +38,6 @@ async function initApp() {
   } else {
     console.log('Пользователь Telegram не авторизован')
   }
-
-  // Инициализация кейсов
-  await loadCases()
-  initCategoryFilters()
-  
-  // Настройка обработчиков событий
-  setupEventListeners()
-  setupCaseOpenHandlers()
-  
-  // Переключение вкладок
-  setupTabSwitchers()
 }
 
 // Сохранение/обновление пользователя
@@ -130,275 +118,89 @@ function updateUI(user) {
   }
 }
 
-// Загрузка кейсов из Supabase
-async function loadCases(categorySlug = null) {
-  try {
-    let query = supabase
-      .from('cases')
-      .select(`
-        id,
-        name,
-        description,
-        price,
-        image_url,
-        animation_url,
-        is_premium,
-        items_count,
-        category:case_categories(name, slug)
-      `)
-      .eq('is_active', true)
-      .order('position', { ascending: true })
-
-    if (categorySlug && categorySlug !== 'all') {
-      query = query.eq('case_categories.slug', categorySlug)
-    }
-
-    const { data: cases, error } = await query
-
-    if (error) throw error
-
-    renderCases(cases)
-  } catch (error) {
-    console.error('Ошибка загрузки кейсов:', error)
-  }
-}
-
-// Отображение кейсов
-function renderCases(cases) {
-  const casesGrid = document.querySelector('.cases-grid')
-  casesGrid.innerHTML = ''
-
-  cases.forEach(caseItem => {
-    const caseElement = document.createElement('div')
-    caseElement.className = `case-item ${caseItem.is_premium ? 'premium' : ''}`
-    caseElement.innerHTML = `
-      <div class="case-image-container">
-        <img src="${caseItem.image_url || 'https://via.placeholder.com/300x300/25253a/ffffff?text=Case'}" class="case-image">
-        <div class="case-items-preview" id="preview-${caseItem.id}"></div>
-      </div>
-      <div class="case-info">
-        <div class="case-name">${caseItem.name}</div>
-        <div class="case-price">
-          <span class="price-amount">${caseItem.price} <i class="fas fa-coins"></i></span>
-          <button class="open-case-btn" data-case-id="${caseItem.id}">Открыть</button>
-        </div>
-      </div>
-    `
-    casesGrid.appendChild(caseElement)
-
-    // Загружаем предметы для этого кейса
-    loadCaseItems(caseItem.id)
-  })
-}
-
-// Загрузка предметов для кейса
-async function loadCaseItems(caseId) {
-  try {
-    const { data: items, error } = await supabase
-      .from('case_items')
-      .select('*')
-      .eq('case_id', caseId)
-      .eq('is_active', true)
-      .order('weight', { ascending: false })
-      .limit(9)
-
-    if (error) throw error
-
-    renderCaseItems(caseId, items)
-  } catch (error) {
-    console.error(`Ошибка загрузки предметов для кейса ${caseId}:`, error)
-  }
-}
-
-// Отображение предметов в превью кейса
-function renderCaseItems(caseId, items) {
-  const previewContainer = document.getElementById(`preview-${caseId}`)
-  if (!previewContainer) return
-
-  previewContainer.innerHTML = ''
-
-  items.forEach(item => {
-    const itemElement = document.createElement('div')
-    itemElement.className = 'preview-item'
-    itemElement.innerHTML = `
-      <img src="${item.image_url}" class="item-${item.rarity}" alt="${item.name}">
-    `
-    previewContainer.appendChild(itemElement)
-  })
-}
-
-// Инициализация фильтров категорий
-function initCategoryFilters() {
-  const categoryItems = document.querySelectorAll('.category-item')
-  
-  categoryItems.forEach(item => {
-    item.addEventListener('click', function() {
-      categoryItems.forEach(i => i.classList.remove('active'))
-      this.classList.add('active')
-      
-      const category = this.textContent === 'Все кейсы' ? 'all' : this.textContent.toLowerCase()
-      loadCases(category)
-    })
-  })
-}
-
-// Обработчик открытия кейса
-function setupCaseOpenHandlers() {
-  document.addEventListener('click', async function(e) {
-    if (e.target.classList.contains('open-case-btn')) {
-      const caseId = e.target.getAttribute('data-case-id')
-      await openCase(caseId)
-    }
-  })
-}
-
-// Функция открытия кейса
-async function openCase(caseId) {
-  if (!tg.initDataUnsafe.user?.id) {
-    tg.showAlert('Необходимо авторизоваться через Telegram')
-    return
-  }
-
-  try {
-    // 1. Получаем данные о кейсе
-    const { data: caseData, error: caseError } = await supabase
-      .from('cases')
-      .select('price')
-      .eq('id', caseId)
-      .single()
-
-    if (caseError || !caseData) throw caseError || new Error('Кейс не найден')
-
-    // 2. Проверяем баланс пользователя
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('balance')
-      .eq('tg_id', tg.initDataUnsafe.user.id)
-      .single()
-
-    if (userError || !userData) throw userError || new Error('Пользователь не найден')
-
-    if (userData.balance < caseData.price) {
-      tg.showAlert(`Недостаточно средств. Нужно ${caseData.price} монет.`)
-      return
-    }
-
-    // 3. Выбираем случайный предмет из кейса (с учетом весов)
-    const { data: items, error: itemsError } = await supabase
-      .from('case_items')
-      .select('*')
-      .eq('case_id', caseId)
-      .eq('is_active', true)
-
-    if (itemsError || !items?.length) throw itemsError || new Error('В кейсе нет предметов')
-
-    const totalWeight = items.reduce((sum, item) => sum + (item.weight || 1), 0)
-    let random = Math.random() * totalWeight
-    let selectedItem = null
-
-    for (const item of items) {
-      random -= item.weight || 1
-      if (random <= 0) {
-        selectedItem = item
-        break
-      }
-    }
-
-    // 4. Обновляем баланс пользователя
-    const newBalance = userData.balance - caseData.price
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({ balance: newBalance })
-      .eq('tg_id', tg.initDataUnsafe.user.id)
-
-    if (updateError) throw updateError
-
-    // 5. Записываем транзакцию
-    const { error: transactionError } = await supabase
-      .from('transactions')
-      .insert({
-        user_id: tg.initDataUnsafe.user.id,
-        amount: -caseData.price,
-        type: 'case_open',
-        description: `Открытие кейса ${caseId}`
-      })
-
-    if (transactionError) throw transactionError
-
-    // 6. Сохраняем результат открытия
-    const { error: openedCaseError } = await supabase
-      .from('opened_cases')
-      .insert({
-        user_id: tg.initDataUnsafe.user.id,
-        case_id: caseId,
-        item_id: selectedItem.id,
-        item_name: selectedItem.name,
-        item_type: selectedItem.type,
-        item_value: selectedItem.value,
-        item_image_url: selectedItem.image_url
-      })
-
-    if (openedCaseError) throw openedCaseError
-
-    // 7. Если предмет имеет ценность (монеты), добавляем их на баланс
-    if (selectedItem.type === 'coin' && selectedItem.value > 0) {
-      const finalBalance = newBalance + selectedItem.value
-      await supabase
-        .from('users')
-        .update({ balance: finalBalance })
-        .eq('tg_id', tg.initDataUnsafe.user.id)
-
-      await supabase
-        .from('transactions')
-        .insert({
-          user_id: tg.initDataUnsafe.user.id,
-          amount: selectedItem.value,
-          type: 'prize',
-          description: `Выигрыш из кейса: ${selectedItem.name}`
-        })
-    }
-
-    // 8. Показываем результат
-    showCaseResult(selectedItem, caseData.price)
-
-    // 9. Обновляем UI
-    userBalance.textContent = selectedItem.type === 'coin' ? newBalance + selectedItem.value : newBalance
-    statBalance.textContent = selectedItem.type === 'coin' ? newBalance + selectedItem.value : newBalance
-    
-    // 10. Обновляем статистику
-    await loadUserStats(tg.initDataUnsafe.user.id)
-  } catch (error) {
-    console.error('Ошибка открытия кейса:', error)
-    tg.showAlert('Произошла ошибка при открытии кейса')
-  }
-}
-
-// Показ результата открытия кейса
-function showCaseResult(item, casePrice) {
-  let message = `Вы открыли кейс за ${casePrice} монет и получили:\n`
-  message += `🎁 ${item.name}\n`
-  
-  if (item.type === 'coin') {
-    message += `💰 +${item.value} монет`
-  } else if (item.type === 'nft') {
-    message += `🖼️ NFT коллекция`
-  } else if (item.type === 'subscription') {
-    message += `🌟 Премиум подписка`
-  }
-  
-  tg.showPopup({
-    title: 'Поздравляем!',
-    message: message,
-    buttons: [{
-      id: 'ok',
-      type: 'default',
-      text: 'Отлично!'
-    }]
-  })
-}
-
 // Обработчики кнопок
 function setupEventListeners() {
+  // Кнопки открытия кейсов
+  document.querySelectorAll('.open-btn').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const caseType = this.closest('.case-item').classList.contains('premium') ? 'premium' : 'regular'
+      const cost = caseType === 'premium' ? 500 : 100
+      
+      try {
+        // Проверяем баланс
+        const { data: user, error: userError } = await supabase
+          .from('users')
+          .select('balance')
+          .eq('tg_id', tg.initDataUnsafe.user.id)
+          .single()
+        
+        if (userError) throw userError
+        
+        if (user.balance < cost) {
+          alert('Недостаточно средств на балансе')
+          return
+        }
+        
+        // Открываем кейс (симуляция)
+        const prizeValue = calculatePrize(caseType)
+        const prizeDescription = getPrizeDescription(prizeValue, caseType)
+        
+        // Обновляем баланс
+        const { error: balanceError } = await supabase
+          .from('users')
+          .update({ balance: user.balance - cost + prizeValue })
+          .eq('tg_id', tg.initDataUnsafe.user.id)
+        
+        if (balanceError) throw balanceError
+        
+        // Записываем транзакцию
+        await supabase
+          .from('transactions')
+          .insert({
+            user_id: tg.initDataUnsafe.user.id,
+            amount: -cost,
+            type: 'case_open',
+            description: `Открытие ${caseType === 'premium' ? 'премиум' : 'обычного'} кейса`
+          })
+        
+        // Если выигрыш > 0, добавляем запись о выигрыше
+        if (prizeValue > 0) {
+          await supabase
+            .from('transactions')
+            .insert({
+              user_id: tg.initDataUnsafe.user.id,
+              amount: prizeValue,
+              type: 'prize',
+              description: prizeDescription
+            })
+        }
+        
+        // Записываем открытие кейса
+        await supabase
+          .from('opened_cases')
+          .insert({
+            user_id: tg.initDataUnsafe.user.id,
+            case_type: caseType,
+            prize_value: prizeValue,
+            prize_description: prizeDescription
+          })
+        
+        // Обновляем UI
+        userBalance.textContent = user.balance - cost + prizeValue
+        statBalance.textContent = user.balance - cost + prizeValue
+        
+        // Показываем результат
+        alert(`Вы открыли кейс и получили: ${prizeDescription}`)
+        
+        // Перезагружаем статистику
+        await loadUserStats(tg.initDataUnsafe.user.id)
+      } catch (error) {
+        console.error('Ошибка открытия кейса:', error)
+        alert('Произошла ошибка при открытии кейса')
+      }
+    })
+  })
+  
   // Кнопка пополнения баланса
   document.querySelector('.action-btn.purple').addEventListener('click', function() {
     tg.showPopup({
@@ -460,8 +262,36 @@ async function depositBalance(amount) {
   }
 }
 
-// Переключение вкладок
-function setupTabSwitchers() {
+// Вспомогательные функции для кейсов
+function calculatePrize(caseType) {
+  // Логика расчета приза
+  if (caseType === 'premium') {
+    const rand = Math.random()
+    if (rand < 0.6) return 200 // 60% chance
+    if (rand < 0.85) return 500 // 25% chance
+    if (rand < 0.95) return 1000 // 10% chance
+    return 5000 // 5% chance
+  } else {
+    const rand = Math.random()
+    if (rand < 0.7) return 50 // 70% chance
+    if (rand < 0.9) return 100 // 20% chance
+    return 500 // 10% chance
+  }
+}
+
+function getPrizeDescription(value, caseType) {
+  if (value <= 100) return `${value} монет`
+  if (value <= 500) return `Хороший приз: ${value} монет`
+  if (value <= 1000) return `Отличный приз: ${value} монет`
+  return `Джекпот! ${value} монет`
+}
+
+// Инициализация при загрузке
+document.addEventListener('DOMContentLoaded', function() {
+  initApp()
+  setupEventListeners()
+  
+  // Переключение вкладок
   const tabLinks = document.querySelectorAll('.nav-item')
   const tabContents = document.querySelectorAll('.tab-content')
   
@@ -485,7 +315,4 @@ function setupTabSwitchers() {
     tabContents.forEach(content => content.classList.add('hidden'))
     document.getElementById('profile-tab').classList.remove('hidden')
   })
-}
-
-// Инициализация при загрузке
-document.addEventListener('DOMContentLoaded', initApp)
+})

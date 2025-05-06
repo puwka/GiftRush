@@ -1,314 +1,208 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>GiftRush - Открывай кейсы с призами</title>
-	<link rel="stylesheet" href="css/style.css">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GiftRush - Открывай кейсы с призами</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-	<div class="container">
-		<!-- Шапка -->
-		<header class="header">
-			<div class="balance-card">
-				<div class="balance-content">
-					<div class="coin-pulse">
-						<i class="fas fa-coins"></i>
-					</div>
-					<div class="balance-info">
-						<span class="balance-label">Баланс</span>
-						<span class="balance-value" id="user-balance">0</span>
-					</div>
-				</div>
-				<div class="balance-wave"></div>
-			</div>
-			
-			<div class="logo-container">
-				<div class="logo-shine"></div>
-				<h1 class="logo-text">GiftRush</h1>
-				<div class="logo-sparkles">
-					<div class="sparkle"></div>
-					<div class="sparkle"></div>
-					<div class="sparkle"></div>
-				</div>
-			</div>
-			
-			<div class="profile-card" id="profile-btn">
-				<div class="profile-pic">
-					<i class="fas fa-user"></i>
-				</div>
-				<div class="online-dot"></div>
-			</div>
-		</header>
+    <div class="container">
+        <!-- Шапка -->
+        <header class="header">
+            <div class="balance-card">
+                <div class="balance-content">
+                    <div class="coin-pulse">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="balance-info">
+                        <span class="balance-label">Баланс</span>
+                        <span class="balance-value" id="user-balance">0</span>
+                    </div>
+                </div>
+                <div class="balance-wave"></div>
+            </div>
+            
+            <div class="logo-container">
+                <div class="logo-shine"></div>
+                <h1 class="logo-text">GiftRush</h1>
+                <div class="logo-sparkles">
+                    <div class="sparkle"></div>
+                    <div class="sparkle"></div>
+                    <div class="sparkle"></div>
+                </div>
+            </div>
+            
+            <div class="profile-card" id="profile-btn">
+                <div class="profile-pic">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="online-dot"></div>
+            </div>
+        </header>
 
-		<!-- Основной контент -->
-		<main class="main-content">
-			<div class="tab-content" id="home-tab">
-				<!-- Категории кейсов -->
-				<div class="categories-tabs">
-				  <div class="categories-container">
-					<button class="category-btn active" data-category="all">Все</button>
-					<button class="category-btn" data-category="free">Бесплатные</button>
-					<button class="category-btn" data-category="nft">NFT</button>
-					<button class="category-btn" data-category="farm">Фарм</button>
-				  </div>
-				</div>
-				
-				<!-- Сетка кейсов -->
-				<div class="cases-grid" id="cases-container">
+        <!-- Основной контент -->
+        <main class="main-content">
+            <div class="tab-content" id="home-tab">
+                <!-- Демо режим -->
+                <div class="demo-mode-container">
+                    <label class="demo-switch">
+                        <input type="checkbox" id="demo-mode-toggle">
+                        <span class="demo-slider"></span>
+                        <span class="demo-text">Демо-режим</span>
+                    </label>
+                </div>
 
-<!-- Бесплатные кейсы -->
-					<h2 class="category-title">Бесплатные кейсы</h2>
-					<div class="case-item free">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="Бесплатный кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">Бесплатный за пополнение 1</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 500
-							</div>
-						</div>
-					</div>
+                <!-- Категории кейсов -->
+                <div class="categories-tabs">
+                  <div class="categories-container">
+                    <button class="category-btn active" data-category="all">Все</button>
+                    <button class="category-btn" data-category="free">Бесплатные</button>
+                    <button class="category-btn" data-category="nft">NFT</button>
+                    <button class="category-btn" data-category="farm">Фарм</button>
+                  </div>
+                </div>
+                
+                <!-- Сетка кейсов -->
+                <div class="cases-grid" id="cases-container">
+                    <!-- Кейсы будут загружаться динамически -->
+                </div>
+            </div>
 
-					<div class="case-item free">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="Бесплатный кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">Бесплатный за пополнение 2</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 1500
-							</div>
-						</div>
-					</div>
+            <!-- Вкладка профиля (изначально скрыта) -->
+            <div class="tab-content hidden" id="profile-tab">
+                <div class="profile-container">
+                    <div class="profile-header">
+                        <div class="avatar">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <h2>Ваш профиль</h2>
+                        <p class="username">@username</p>
+                    </div>
 
-					<div class="case-item free">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="Бесплатный кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">Бесплатный за пополнение 3</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 3000
-							</div>
-						</div>
-					</div>
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <i class="fas fa-coins"></i>
+                            <div>
+                                <span class="stat-value">0</span>
+                                <span class="stat-label">Баланс</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-box-open"></i>
+                            <div>
+                                <span class="stat-value">0</span>
+                                <span class="stat-label">Открыто кейсов</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-trophy"></i>
+                            <div>
+                                <span class="stat-value">0</span>
+                                <span class="stat-label">Выиграно призов</span>
+                            </div>
+                        </div>
+                    </div>
 
-					<!-- NFT кейсы -->
-					<h2 class="category-title">NFT кейсы</h2>
-					<div class="case-item nft">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="NFT кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">NFT Стартовый</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 5000
-							</div>
-						</div>
-					</div>
+                    <div class="profile-actions">
+                        <button class="action-btn purple" id="deposit-btn">
+                            <i class="fas fa-wallet"></i> Пополнить баланс
+                        </button>
+                        <button class="action-btn dark">
+                            <i class="fas fa-cog"></i> Настройки
+                        </button>
+                        <button class="action-btn red">
+                            <i class="fas fa-sign-out-alt"></i> Выйти
+                        </button>
+                    </div>
 
-					<div class="case-item nft">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="NFT кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">NFT Продвинутый</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 10000
-							</div>
-						</div>
-					</div>
+                    <!-- Инвентарь -->
+                    <div class="inventory-section">
+                        <h3 class="inventory-title">
+                            <i class="fas fa-box-open"></i> Инвентарь
+                        </h3>
+                        <div class="inventory-grid" id="inventory-container">
+                            <!-- Предметы будут загружаться динамически -->
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-					<div class="case-item nft">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="NFT кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">NFT Профессиональный</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 20000
-							</div>
-						</div>
-					</div>
+            <!-- Вкладка открытия кейсов (изначально скрыта) -->
+            <div class="tab-content hidden" id="open-case-tab">
+                <div class="open-case-container">
+                    <div class="case-roulette-container">
+                        <div class="case-roulette" id="case-roulette">
+                            <!-- Элементы рулетки будут добавлены динамически -->
+                        </div>
+                        <div class="roulette-center-line"></div>
+                    </div>
+                    
+                    <div class="prize-display" id="prize-display">
+                        <!-- Выигранные предметы будут отображаться здесь -->
+                    </div>
+                    
+                    <div class="case-items-preview">
+                        <h3>Возможные призы:</h3>
+                        <div class="case-items-grid" id="case-items-preview">
+                            <!-- Предметы кейса будут загружаться динамически -->
+                        </div>
+                    </div>
+                    
+                    <div class="open-case-actions">
+                        <button class="action-btn purple" id="open-case-btn">Открыть кейс</button>
+                        <button class="action-btn dark" id="back-to-cases-btn">Назад к кейсам</button>
+                    </div>
+                </div>
+            </div>
+        </main>
 
-					<div class="case-item nft">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="NFT кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">NFT Легендарный</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 50000
-							</div>
-						</div>
-					</div>
+        <!-- Нижнее меню -->
+        <nav class="bottom-nav">
+            <a href="#" class="nav-item active" data-tab="home-tab">
+                <i class="fas fa-home"></i>
+                <span>Кейсы</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="gifts-tab">
+                <i class="fas fa-gift"></i>
+                <span>Подарки</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="shop-tab">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Магазин</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="profile-tab">
+                <i class="fas fa-user"></i>
+                <span>Профиль</span>
+            </a>
+        </nav>
+    </div>
 
-					<!-- Фарм кейсы -->
-					<h2 class="category-title">Фарм кейсы</h2>
-					<div class="case-item farm">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="Фарм кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">Фарм Базовый</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 1000
-							</div>
-						</div>
-					</div>
+    <!-- Модальное окно -->
+    <div class="modal hidden" id="case-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Открыть кейсы</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Сколько кейсов вы хотите открыть?</p>
+                <div class="case-quantity-selector">
+                    <button class="quantity-btn" data-quantity="1">1</button>
+                    <button class="quantity-btn" data-quantity="3">3</button>
+                    <button class="quantity-btn" data-quantity="5">5</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn dark" id="cancel-open-case">Отмена</button>
+                <button class="action-btn purple" id="confirm-open-case">Подтвердить</button>
+            </div>
+        </div>
+    </div>
 
-					<div class="case-item farm">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="Фарм кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">Фарм Средний</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 2500
-							</div>
-						</div>
-					</div>
-
-					<div class="case-item farm">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="Фарм кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">Фарм Профессиональный</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 5000
-							</div>
-						</div>
-					</div>
-
-					<div class="case-item farm">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="Фарм кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">Фарм Премиум</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 10000
-							</div>
-						</div>
-					</div>
-
-					<!-- Другие кейсы -->
-					<h2 class="category-title">Другие кейсы</h2>
-					<div class="case-item">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="Другой кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">Легендарный</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 5000
-							</div>
-						</div>
-					</div>
-
-					<div class="case-item">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="Другой кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">Эпический</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 3000
-							</div>
-						</div>
-					</div>
-
-					<div class="case-item">
-						<div class="case-preview">
-							<img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="Другой кейс">
-						</div>
-						<div class="case-info">
-							<h3 class="case-name">Редкий</h3>
-							<div class="case-price">
-								<i class="fas fa-coins"></i> 1500
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<!-- Вкладка профиля (изначально скрыта) -->
-			<div class="tab-content hidden" id="profile-tab">
-				<div class="profile-container">
-					<div class="profile-header">
-						<div class="avatar">
-							<i class="fas fa-user-circle"></i>
-						</div>
-						<h2>Ваш профиль</h2>
-						<p class="username">@username</p>
-					</div>
-
-					<div class="profile-stats">
-						<div class="stat-item">
-							<i class="fas fa-coins"></i>
-							<div>
-								<span class="stat-value">0</span>
-								<span class="stat-label">Баланс</span>
-							</div>
-						</div>
-						<div class="stat-item">
-							<i class="fas fa-box-open"></i>
-							<div>
-								<span class="stat-value">24</span>
-								<span class="stat-label">Открыто кейсов</span>
-							</div>
-						</div>
-						<div class="stat-item">
-							<i class="fas fa-trophy"></i>
-							<div>
-								<span class="stat-value">5</span>
-								<span class="stat-label">Выиграно призов</span>
-							</div>
-						</div>
-					</div>
-
-					<div class="profile-actions">
-						<button class="action-btn purple">
-							<i class="fas fa-wallet"></i> Пополнить баланс
-						</button>
-						<button class="action-btn dark">
-							<i class="fas fa-cog"></i> Настройки
-						</button>
-						<button class="action-btn red">
-							<i class="fas fa-sign-out-alt"></i> Выйти
-						</button>
-					</div>
-				</div>
-			</div>
-		</main>
-
-		<!-- Нижнее меню -->
-		<nav class="bottom-nav">
-			<a href="#" class="nav-item active" data-tab="home-tab">
-				<i class="fas fa-home"></i>
-				<span>Кейсы</span>
-			</a>
-			<a href="#" class="nav-item" data-tab="gifts-tab">
-				<i class="fas fa-gift"></i>
-				<span>Подарки</span>
-			</a>
-			<a href="#" class="nav-item" data-tab="shop-tab">
-				<i class="fas fa-shopping-cart"></i>
-				<span>Магазин</span>
-			</a>
-			<a href="#" class="nav-item" data-tab="profile-tab">
-				<i class="fas fa-user"></i>
-				<span>Профиль</span>
-			</a>
-		</nav>
-	</div>
-
-	<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-	<script src="https://telegram.org/js/telegram-web-app.js"></script>
-	<script type="module" src="js/script.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script type="module" src="js/script.js"></script>
 </body>
 </html>

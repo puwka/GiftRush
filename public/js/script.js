@@ -21,10 +21,14 @@ const statPrizes = document.querySelector('.stat-item:nth-child(3) .stat-value')
 
 // Глобальная функция для открытия страницы кейса
 window.openCasePage = function(caseId, event) {
-    if (event) {
-        event.preventDefault();
-    }
-    window.location.href = `case.html?id=${caseId}`;
+    if (event) event.preventDefault();
+    
+    // Два варианта URL:
+    const newUrl = `/case/${caseId}`;  // ЧПУ вариант
+    // или
+    // const newUrl = `/case.html?id=${caseId}`;  // Стандартный вариант
+    
+    window.location.href = newUrl;
     return false;
 }
 

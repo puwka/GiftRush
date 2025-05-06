@@ -194,6 +194,16 @@ function setupEventListeners() {
 		
 		// Перезагружаем статистику
 		await loadUserStats(tg.initDataUnsafe.user.id)
+
+        document.querySelectorAll('.case-item').forEach(caseItem => {
+            caseItem.addEventListener('click', function() {
+                const caseId = this.dataset.caseId;
+                if (caseId) {
+                    window.location.href = `case.html?id=${caseId}`;
+                }
+            });
+        });
+
 	  } catch (error) {
 		console.error('Ошибка открытия кейса:', error)
 		alert('Произошла ошибка при открытии кейса')

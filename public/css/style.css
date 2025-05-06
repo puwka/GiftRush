@@ -648,3 +648,19 @@ body {
 	height: 3px;
 	background: linear-gradient(90deg, #f1c40f, #f39c12);
 }
+
+/* Анимация перехода между страницами */
+html {
+    scroll-behavior: smooth;
+    transition: all 0.3s ease;
+}
+
+.case-item {
+    transition: transform 0.2s ease;
+    cursor: pointer;
+}
+
+.case-item:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}

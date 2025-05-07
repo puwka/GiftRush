@@ -16,12 +16,12 @@
       "dest": "/public/js/$1"
     },
     {
-      "src": "/(.*)",
-      "dest": "/public/index.html"
+      "src": "/case.html",
+      "dest": "/public/case.html"
     },
     {
       "src": "/(.*)",
-      "dest": "/public/case.html"
+      "dest": "/public/index.html"
     }
   ]
 }

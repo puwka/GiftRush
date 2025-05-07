@@ -1,13 +1,38 @@
 {
   "version": 2,
+  "builds": [
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "case.html",
+      "use": "@vercel/static"
+    }
+  ],
   "routes": [
+    {
+      "src": "/",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/case",
+      "dest": "/case.html"
+    },
     {
       "src": "/case.html",
       "dest": "/case.html"
     },
     {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/index.html",
+      "status": 200
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/case.html\\?id=:id",
+      "destination": "/case.html?id=:id"
     }
   ]
 }

@@ -19,9 +19,6 @@ const statBalance = document.querySelector('.stat-item:nth-child(1) .stat-value'
 const statCases = document.querySelector('.stat-item:nth-child(2) .stat-value')
 const statPrizes = document.querySelector('.stat-item:nth-child(3) .stat-value')
 const casesContainer = document.getElementById('cases-container')
-const caseModal = document.getElementById('case-modal')
-const modalBody = document.getElementById('modal-body')
-const closeModal = document.querySelector('.close-modal')
 
 // Основная функция инициализации
 async function initApp() {
@@ -36,17 +33,12 @@ async function initApp() {
       
       // Загружаем статистику
       await loadUserStats(user.tg_id)
-      
-      // Загружаем кейсы
-      await loadCases()
 
     } catch (error) {
       console.error('Ошибка инициализации:', error)
     }
   } else {
     console.log('Пользователь Telegram не авторизован')
-    // Загружаем кейсы в демо-режиме
-    await loadCases()
   }
 }
 
@@ -111,90 +103,6 @@ async function loadUserStats(userId) {
   }
 }
 
-// Загрузка кейсов
-async function loadCases() {
-  try {
-    const { data: cases, error } = await supabase
-      .from('cases')
-      .select('*')
-      .order('price', { ascending: true })
-    
-    if (error) throw error
-    
-    renderCases(cases)
-  } catch (error) {
-    console.error('Ошибка загрузки кейсов:', error)
-  }
-}
-
-// Отображение кейсов
-function renderCases(cases) {
-  casesContainer.innerHTML = ''
-  
-  // Группируем кейсы по категориям
-  const categories = {
-    free: cases.filter(c => c.type === 'free'),
-    nft: cases.filter(c => c.type === 'nft'),
-    farm: cases.filter(c => c.type === 'farm'),
-    other: cases.filter(c => !['free', 'nft', 'farm'].includes(c.type))
-  }
-  
-  // Рендерим каждую категорию
-  for (const [category, items] of Object.entries(categories)) {
-    if (items.length === 0) continue
-    
-    // Добавляем заголовок категории
-    const categoryTitle = document.createElement('h2')
-    categoryTitle.className = 'category-title'
-    categoryTitle.textContent = getCategoryName(category)
-    casesContainer.appendChild(categoryTitle)
-    
-    // Создаем контейнер для кейсов категории
-    const categoryContainer = document.createElement('div')
-    categoryContainer.className = 'category-cases'
-    
-    // Добавляем кейсы
-    items.forEach(caseItem => {
-      const caseElement = createCaseElement(caseItem)
-      categoryContainer.appendChild(caseElement)
-    })
-    
-    casesContainer.appendChild(categoryContainer)
-  }
-}
-
-// Создание элемента кейса
-function createCaseElement(caseData) {
-  const caseElement = document.createElement('div')
-  caseElement.className = `case-item ${caseData.type}`
-  caseElement.dataset.caseId = caseData.id
-  
-  caseElement.innerHTML = `
-    <div class="case-preview">
-      <img src="${caseData.image_url || 'https://via.placeholder.com/150'}" alt="${caseData.name}">
-    </div>
-    <div class="case-info">
-      <h3 class="case-name">${caseData.name}</h3>
-      <div class="case-price">
-        <i class="fas fa-coins"></i> ${caseData.price}
-      </div>
-    </div>
-  `
-  
-  return caseElement
-}
-
-// Получение названия категории
-function getCategoryName(category) {
-  const names = {
-    free: 'Бесплатные кейсы',
-    nft: 'NFT кейсы',
-    farm: 'Фарм кейсы',
-    other: 'Другие кейсы'
-  }
-  return names[category] || category
-}
-
 // Обновление интерфейса
 function updateUI(user) {
   // Шапка
@@ -240,13 +148,14 @@ function setupEventListeners() {
   })
 
   // Обработчики кликов по карточкам кейсов
-  casesContainer.addEventListener('click', function(e) {
+  document.addEventListener('click', function(e) {
     const caseItem = e.target.closest('.case-item')
     if (caseItem) {
-      const caseId = caseItem.dataset.caseId
-      if (caseId) {
-        window.location.href = `case.html?id=${caseId}`
-      }
+        const caseId = caseItem.dataset.caseId
+        if (caseId) {
+            // Используем относительный путь, который будет работать везде
+            window.location.href = `/case.html?id=${caseId}`
+        }
     }
   })
   
@@ -267,18 +176,6 @@ function setupEventListeners() {
         depositBalance(amount)
       }
     })
-  })
-  
-  // Закрытие модального окна
-  closeModal.addEventListener('click', () => {
-    caseModal.style.display = 'none'
-  })
-  
-  // Закрытие при клике вне модального окна
-  window.addEventListener('click', (e) => {
-    if (e.target === caseModal) {
-      caseModal.style.display = 'none'
-    }
   })
 }
 

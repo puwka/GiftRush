@@ -145,7 +145,7 @@ function setupEventListeners() {
       const caseId = caseItem.dataset.caseId
       if (caseId) {
         // Для Vercel используем абсолютный путь
-        window.location.href = `/case.html?id=${caseId}`
+        window.location.href = `https://gift-rush.vercel.app/case.html?id=${caseId}`
       }
     }
   })

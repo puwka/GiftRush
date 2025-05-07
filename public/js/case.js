@@ -53,7 +53,8 @@ async function initApp() {
     });
   }
 
-  if (tg.initDataUnsafe.user) {
+  // Проверяем, есть ли пользователь Telegram
+  if (tg.initDataUnsafe?.user) {
     try {
       await loadUserData()
       await loadCaseData()
@@ -74,9 +75,11 @@ async function initApp() {
 
 // Загрузка данных пользователя
 async function loadUserData() {
+  if (!tg.initDataUnsafe?.user) return;
+
   const { data: user, error } = await supabase
     .from('users')
-    .select('balance')
+    .select('balance, avatar_url')
     .eq('tg_id', tg.initDataUnsafe.user.id)
     .single()
   
@@ -84,6 +87,14 @@ async function loadUserData() {
   
   currentBalance = user.balance || 0
   userBalance.textContent = currentBalance
+
+  // Обновляем аватар
+  const profilePic = document.getElementById('profile-pic')
+  if (user.avatar_url) {
+    profilePic.innerHTML = `<img src="${user.avatar_url}" alt="Profile" class="avatar-img-small">`
+  } else {
+    profilePic.innerHTML = `<i class="fas fa-user"></i>`
+  }
 }
 
 // Загрузка данных кейса

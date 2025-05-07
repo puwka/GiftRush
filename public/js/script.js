@@ -139,12 +139,15 @@ function setupEventListeners() {
   })
   
   // Кнопка профиля в хедере
-  profileBtn.addEventListener('click', function() {
-    tabLinks.forEach(item => item.classList.remove('active'))
-    document.querySelector('.nav-item[data-tab="profile-tab"]').classList.add('active')
-    
-    tabContents.forEach(content => content.classList.add('hidden'))
-    document.getElementById('profile-tab').classList.remove('hidden')
+  document.addEventListener('click', function(e) {
+    const caseItem = e.target.closest('.case-item')
+    if (caseItem) {
+      const caseId = caseItem.dataset.caseId
+      if (caseId) {
+        // Для Vercel используем абсолютный путь
+        window.location.href = `/case.html?id=${caseId}`
+      }
+    }
   })
   
   // Обработчики кликов по карточкам кейсов

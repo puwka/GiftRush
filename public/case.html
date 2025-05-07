@@ -10,12 +10,8 @@
 </head>
 <body>
     <div class="container">
-        <!-- Шапка -->
+        <!-- Шапка без кнопки "Назад" -->
         <header class="header">
-            <div class="back-button" id="back-btn">
-                <i class="fas fa-arrow-left"></i>
-            </div>
-            
             <div class="balance-card">
                 <div class="balance-content">
                     <div class="coin-pulse">
@@ -57,23 +53,12 @@
                 </div>
             </div>
 
-            <!-- Рулетка -->
+            <!-- Рулетка с перевернутыми стрелками -->
             <div class="roulette-container">
                 <div class="roulette-items" id="roulette-items">
                     <!-- Элементы рулетки будут загружаться динамически -->
                 </div>
-                <div class="roulette-center"></div>
-            </div>
-
-            <!-- Управление количеством кейсов -->
-            <div class="case-quantity-control">
-                <button class="quantity-btn" id="decrease-qty">
-                    <i class="fas fa-minus"></i>
-                </button>
-                <span class="quantity-value" id="case-quantity">1</span>
-                <button class="quantity-btn" id="increase-qty">
-                    <i class="fas fa-plus"></i>
-                </button>
+                <div class="roulette-center reversed"></div>
             </div>
 
             <!-- Кнопка открытия -->
@@ -91,10 +76,10 @@
                 </label>
             </div>
 
-            <!-- Возможные призы -->
+            <!-- Возможные призы в 2 ряда -->
             <div class="possible-prizes">
                 <h2>Возможные призы:</h2>
-                <div class="prizes-grid" id="possible-prizes">
+                <div class="prizes-grid two-rows" id="possible-prizes">
                     <!-- Возможные призы будут загружаться динамически -->
                 </div>
             </div>

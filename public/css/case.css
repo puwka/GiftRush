@@ -324,3 +324,48 @@ input:checked + .slider:before {
     cursor: pointer;
     z-index: 10;
 }
+
+/* Рулетка с перевернутыми стрелками */
+.roulette-center.reversed:before {
+    border-top: 15px solid #8e44ad;
+    border-bottom: none;
+    top: -15px;
+}
+
+.roulette-center.reversed:after {
+    border-bottom: 15px solid #8e44ad;
+    border-top: none;
+    bottom: -15px;
+}
+
+/* Возможные призы в 2 ряда */
+.prizes-grid.two-rows {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.prizes-row {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+/* Элементы рулетки (только изображение) */
+.roulette-item {
+    min-width: 150px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    background: #252525;
+    border-right: 1px solid #2d2d2d;
+}
+
+.roulette-item img {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+}

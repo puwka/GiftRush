@@ -150,17 +150,15 @@ function setupEventListeners() {
   // Обработчики кликов по карточкам кейсов
   // Обработчики кликов по карточкам кейсов
   document.addEventListener('click', function(e) {
-    const caseItem = e.target.closest('.case-item');
+    const caseItem = e.target.closest('.case-item')
     if (caseItem) {
-        const caseId = caseItem.dataset.caseId;
+        const caseId = caseItem.dataset.caseId
         if (caseId) {
-            // Прячем главную страницу, показываем кейс
-            document.getElementById('home-tab').classList.add('hidden');
-            document.getElementById('case-tab').classList.remove('hidden');
-            loadCaseData(caseId); // Загружаем данные кейса
+            // Используем относительный путь
+            window.location.href = `case.html?id=${caseId}`
         }
     }
-  });
+  })
   
   // Кнопка пополнения баланса
   document.querySelector('.action-btn.purple')?.addEventListener('click', function() {

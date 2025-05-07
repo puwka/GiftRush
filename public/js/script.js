@@ -148,15 +148,20 @@ function setupEventListeners() {
   })
 
   // Обработчики кликов по карточкам кейсов
-  // Обработчики кликов по карточкам кейсов
   document.addEventListener('click', function(e) {
     const caseItem = e.target.closest('.case-item')
     if (caseItem) {
-        const caseId = caseItem.dataset.caseId
-        if (caseId) {
-            // Используем относительный путь
-            window.location.href = `case.html?id=${caseId}`
+      const caseId = caseItem.dataset.caseId
+      if (caseId) {
+        // Проверяем, существует ли элемент перед обращением к нему
+        const profileTab = document.querySelector('.nav-item[data-tab="profile-tab"]')
+        if (profileTab) {
+          profileTab.classList.remove('active')
         }
+        
+        // Используем относительный путь
+        window.location.href = `case.html?id=${caseId}`
+      }
     }
   })
   

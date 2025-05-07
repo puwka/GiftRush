@@ -484,3 +484,41 @@ input:checked + .slider:before {
 .case-image-container.hidden {
     display: none;
 }
+
+/* Управление видимостью элементов */
+.case-image-container {
+    display: flex;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.case-image-container.hidden {
+    display: none;
+    opacity: 0;
+}
+
+.roulette-container {
+    display: none;
+    opacity: 0;
+    height: 200px;
+    transition: opacity 0.3s ease;
+}
+
+.roulette-container.visible {
+    display: block;
+    opacity: 1;
+}
+
+/* Гарантируем, что рулетка будет видна */
+.roulette-items {
+    display: flex;
+    height: 100%;
+}
+
+.roulette-item {
+    min-width: 150px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

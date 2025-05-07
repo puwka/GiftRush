@@ -44,11 +44,13 @@ let isFirstSpin = true;
 // Основная функция инициализации
 async function initApp() {
   // Проверяем существование элементов перед работой с ними
+  // На этот:
   if (caseImageContainer) {
     caseImageContainer.classList.remove('hidden');
   }
   
   if (rouletteContainer) {
+    rouletteContainer.classList.remove('visible');
     rouletteContainer.classList.add('hidden');
   }
 
@@ -247,93 +249,10 @@ function updateTotalPrice() {
   }
 }
 
-function spinRoulette() {
-  return new Promise(resolve => {
-      const itemWidth = 150;
-      const itemsCount = caseItems.length;
-      const targetIndex = Math.floor(Math.random() * itemsCount);
-      
-      // Создаем 10 копий предметов для бесконечного вращения
-      const extendedItems = Array(10).fill().flatMap(() => caseItems);
-      rouletteItems.innerHTML = extendedItems.map(item => `
-          <div class="roulette-item" data-item-id="${item.id}">
-              <img src="${item.image_url || 'https://via.placeholder.com/150'}" alt="${item.name}">
-          </div>
-      `).join('');
-
-      // Настройки анимации
-      const totalDuration = 6000; // 6 секунд общее время
-      const fastDuration = 4000;  // 4 секунды быстрого вращения
-      const slowDuration = 2000;  // 2 секунды замедления
-      const targetPosition = (itemsCount * 5 + targetIndex) * itemWidth;
-      
-      let startTime = null;
-      let distanceCovered = 0;
-
-      // Плавное появление рулетки
-      rouletteContainer.style.opacity = '0';
-      rouletteContainer.style.transition = 'opacity 0.3s ease-out';
-      setTimeout(() => {
-          rouletteContainer.style.opacity = '1';
-      }, 10);
-
-      function animate(timestamp) {
-          if (!startTime) startTime = timestamp;
-          const elapsed = timestamp - startTime;
-          const progress = Math.min(elapsed / totalDuration, 1);
-
-          // Фаза быстрого вращения (первые 4 секунды)
-          if (elapsed < fastDuration) {
-              distanceCovered = (targetPosition * 0.8) * (elapsed / fastDuration);
-          } 
-          // Фаза замедления (последние 2 секунды)
-          else {
-              const slowProgress = (elapsed - fastDuration) / slowDuration;
-              const slowEasing = 1 - Math.pow(1 - slowProgress, 4); // Сильное замедление
-              distanceCovered = (targetPosition * 0.8) + (targetPosition * 0.2) * slowEasing;
-          }
-
-          rouletteItems.style.transform = `translateX(-${distanceCovered}px)`;
-
-          if (progress < 1) {
-              requestAnimationFrame(animate);
-          } else {
-              // Плавное исчезновение рулетки
-              rouletteContainer.style.transition = 'opacity 0.5s ease-in';
-              rouletteContainer.style.opacity = '0';
-              
-              // После анимации возвращаем оригинальные предметы
-              setTimeout(() => {
-                  rouletteItems.innerHTML = caseItems.map(item => `
-                      <div class="roulette-item" data-item-id="${item.id}">
-                          <img src="${item.image_url || 'https://via.placeholder.com/150'}" alt="${item.name}">
-                      </div>
-                  `).join('');
-                  
-                  // Точная остановка на выигранном предмете
-                  const finalPosition = targetIndex * itemWidth;
-                  rouletteItems.style.transform = `translateX(-${finalPosition}px)`;
-                  
-                  // Запоминаем выигрыш
-                  wonItems.push(caseItems[targetIndex]);
-                  
-                  // Возвращаем видимость контейнерам
-                  setTimeout(() => {
-                      caseImageContainer.style.transition = 'opacity 0.5s ease-out';
-                      caseImageContainer.style.opacity = '1';
-                      resolve();
-                  }, 100);
-              }, 500); // Задержка перед сбросом
-          }
-      }
-
-      requestAnimationFrame(animate);
-  });
-}
-
-// Обновляем функцию openCases для использования новой анимации
 async function openCases(count) {
   if (isSpinning) return;
+  
+  console.log('Начало открытия кейса'); // Логирование
   
   const demoMode = demoModeToggle?.checked;
   const price = currentCase.price * count;
@@ -347,11 +266,24 @@ async function openCases(count) {
   disableButtons();
   wonItems = [];
   
-  // Показываем рулетку и скрываем изображение кейса
-  if (caseImageContainer) caseImageContainer.classList.add('hidden');
-  if (rouletteContainer) rouletteContainer.classList.remove('hidden');
+  // 1. Сначала скрываем кейс
+  if (caseImageContainer) {
+      caseImageContainer.classList.add('hidden');
+      console.log('Кейс скрыт');
+  }
+  
+  // 2. Показываем рулетку
+  if (rouletteContainer) {
+      rouletteContainer.classList.remove('hidden');
+      rouletteContainer.classList.add('visible');
+      console.log('Рулетка показана');
+      
+      // Принудительное обновление DOM
+      void rouletteContainer.offsetWidth;
+  }
   
   try {
+      console.log('Запуск анимации рулетки');
       await spinRoulette();
       
       if (!demoMode) {
@@ -360,24 +292,89 @@ async function openCases(count) {
           await saveResults();
       }
       
-      // После завершения анимации показываем изображение кейса снова
+      console.log('Анимация завершена');
+  } catch (error) {
+      console.error('Ошибка:', error);
+      tg.showAlert('Произошла ошибка');
+  } finally {
+      // 3. После завершения возвращаем исходное состояние
       setTimeout(() => {
-          if (caseImageContainer) caseImageContainer.classList.remove('hidden');
-          if (rouletteContainer) rouletteContainer.classList.add('hidden');
+          if (rouletteContainer) {
+              rouletteContainer.classList.remove('visible');
+              rouletteContainer.classList.add('hidden');
+              console.log('Рулетка скрыта');
+          }
+          
+          if (caseImageContainer) {
+              caseImageContainer.classList.remove('hidden');
+              console.log('Кейс показан');
+          }
           
           if (wonItems.length > 0) {
-              tg.showAlert(`Вы выиграли: ${wonItems[0].name} (${wonItems[0].value} монет)`);
+              tg.showAlert(`Вы выиграли: ${wonItems[0].name}`);
           }
           
           isSpinning = false;
           enableButtons();
-      }, 1000);
-  } catch (error) {
-      console.error('Ошибка при открытии кейса:', error);
-      tg.showAlert('Произошла ошибка при открытии кейса');
-      isSpinning = false;
-      enableButtons();
+      }, 500);
   }
+}
+
+function spinRoulette() {
+  return new Promise(resolve => {
+      console.log('Запуск spinRoulette');
+      
+      const itemWidth = 150;
+      const itemsCount = caseItems.length;
+      const targetIndex = Math.floor(Math.random() * itemsCount);
+      const targetPosition = (itemsCount * 5 + targetIndex) * itemWidth;
+      
+      // Создаем элементы рулетки
+      const extendedItems = Array(10).fill().flatMap(() => caseItems);
+      rouletteItems.innerHTML = extendedItems.map(item => `
+          <div class="roulette-item" data-item-id="${item.id}">
+              <img src="${item.image_url || 'https://via.placeholder.com/150'}" alt="${item.name}">
+          </div>
+      `).join('');
+
+      let startTime = null;
+      
+      function animate(timestamp) {
+          if (!startTime) startTime = timestamp;
+          const elapsed = timestamp - startTime;
+          const progress = Math.min(elapsed / 6000, 1);
+          
+          // Анимация движения
+          let distance;
+          if (elapsed < 4000) {
+              distance = (targetPosition * 0.8) * (elapsed / 4000);
+          } else {
+              const slowProgress = (elapsed - 4000) / 2000;
+              distance = (targetPosition * 0.8) + (targetPosition * 0.2) * (1 - Math.pow(1 - slowProgress, 4));
+          }
+          
+          rouletteItems.style.transform = `translateX(-${distance}px)`;
+          
+          if (progress < 1) {
+              requestAnimationFrame(animate);
+          } else {
+              // Завершение анимации
+              setTimeout(() => {
+                  rouletteItems.innerHTML = caseItems.map(item => `
+                      <div class="roulette-item" data-item-id="${item.id}">
+                          <img src="${item.image_url || 'https://via.placeholder.com/150'}" alt="${item.name}">
+                      </div>
+                  `).join('');
+                  
+                  rouletteItems.style.transform = `translateX(-${targetIndex * itemWidth}px)`;
+                  wonItems.push(caseItems[targetIndex]);
+                  resolve();
+              }, 500);
+          }
+      }
+      
+      requestAnimationFrame(animate);
+  });
 }
 
 async function saveResults() {

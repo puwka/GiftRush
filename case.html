@@ -1,116 +1,128 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Открытие кейса - GiftRush</title>
-	<link rel="stylesheet" href="css/style.css">
-	<link rel="stylesheet" href="css/case.css">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Открытие кейса - GiftRush</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/case.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-	<div class="container">
-		<!-- Шапка -->
-		<header class="header">
-			<div class="balance-card">
-				<div class="balance-content">
-					<div class="coin-pulse">
-						<i class="fas fa-coins"></i>
-					</div>
-					<div class="balance-info">
-						<span class="balance-label">Баланс</span>
-						<span class="balance-value" id="user-balance">0</span>
-					</div>
-				</div>
-				<div class="balance-wave"></div>
-			</div>
-			
-			<div class="logo-container">
-				<div class="logo-shine"></div>
-				<h1 class="logo-text">GiftRush</h1>
-				<div class="logo-sparkles">
-					<div class="sparkle"></div>
-					<div class="sparkle"></div>
-					<div class="sparkle"></div>
-				</div>
-			</div>
-			
-			<div class="profile-card" id="profile-btn">
-				<div class="profile-pic">
-					<i class="fas fa-user"></i>
-				</div>
-				<div class="online-dot"></div>
-			</div>
-		</header>
+    <div class="container">
+        <!-- Шапка -->
+        <header class="header">
+            <div class="back-button" id="back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </div>
+            
+            <div class="balance-card">
+                <div class="balance-content">
+                    <div class="coin-pulse">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="balance-info">
+                        <span class="balance-label">Баланс</span>
+                        <span class="balance-value" id="user-balance">0</span>
+                    </div>
+                </div>
+                <div class="balance-wave"></div>
+            </div>
+            
+            <div class="logo-container">
+                <div class="logo-shine"></div>
+                <h1 class="logo-text">GiftRush</h1>
+                <div class="logo-sparkles">
+                    <div class="sparkle"></div>
+                    <div class="sparkle"></div>
+                    <div class="sparkle"></div>
+                </div>
+            </div>
+            
+            <div class="profile-card" id="profile-btn">
+                <div class="profile-pic">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="online-dot"></div>
+            </div>
+        </header>
 
-		<!-- Основной контент -->
-		<main class="case-content">
-			<div class="case-header">
-				<h1 id="case-name">Название кейса</h1>
-				<div class="case-price">
-					<i class="fas fa-coins"></i>
-					<span id="case-price-value">0</span>
-				</div>
-			</div>
+        <!-- Основной контент -->
+        <main class="case-content">
+            <div class="case-header">
+                <h1 id="case-name">Название кейса</h1>
+                <div class="case-price">
+                    <i class="fas fa-coins"></i>
+                    <span id="case-price-value">0</span>
+                </div>
+            </div>
 
-			<div class="demo-mode-toggle">
-				<label class="toggle-switch">
-					<input type="checkbox" id="demo-mode">
-					<span class="slider"></span>
-					<span class="toggle-label">Демо-режим</span>
-				</label>
-			</div>
+            <!-- Рулетка -->
+            <div class="roulette-container">
+                <div class="roulette-items" id="roulette-items">
+                    <!-- Элементы рулетки будут загружаться динамически -->
+                </div>
+                <div class="roulette-center"></div>
+            </div>
 
-			<div class="case-actions">
-				<button class="action-btn" id="open-single">Открыть 1</button>
-				<button class="action-btn" id="open-three">Открыть 3</button>
-			</div>
+            <!-- Управление количеством кейсов -->
+            <div class="case-quantity-control">
+                <button class="quantity-btn" id="decrease-qty">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <span class="quantity-value" id="case-quantity">1</span>
+                <button class="quantity-btn" id="increase-qty">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
 
-			<div class="roulette-container">
-				<div class="roulette-items" id="roulette-items">
-					<!-- Элементы рулетки будут загружаться динамически -->
-				</div>
-				<div class="roulette-center"></div>
-			</div>
+            <!-- Кнопка открытия -->
+            <button class="open-case-btn" id="open-case">
+                ОТКРЫТЬ КЕЙС
+                <span class="total-price" id="total-price">0</span>
+            </button>
 
-			<div class="prizes-container">
-				<h2>Выигранные призы:</h2>
-				<div class="prizes-grid" id="won-prizes">
-					<!-- Выигранные призы будут отображаться здесь -->
-				</div>
-			</div>
+            <!-- Демо-режим -->
+            <div class="demo-mode-toggle">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="demo-mode">
+                    <span class="slider"></span>
+                    <span class="toggle-label">Демо-режим</span>
+                </label>
+            </div>
 
-			<div class="possible-prizes">
-				<h2>Возможные призы:</h2>
-				<div class="prizes-grid" id="possible-prizes">
-					<!-- Возможные призы будут загружаться динамически -->
-				</div>
-			</div>
-		</main>
+            <!-- Возможные призы -->
+            <div class="possible-prizes">
+                <h2>Возможные призы:</h2>
+                <div class="prizes-grid" id="possible-prizes">
+                    <!-- Возможные призы будут загружаться динамически -->
+                </div>
+            </div>
+        </main>
 
-		<!-- Нижнее меню -->
-		<nav class="bottom-nav">
-			<a href="index.html" class="nav-item">
-				<i class="fas fa-home"></i>
-				<span>Кейсы</span>
-			</a>
-			<a href="#" class="nav-item">
-				<i class="fas fa-gift"></i>
-				<span>Подарки</span>
-			</a>
-			<a href="#" class="nav-item">
-				<i class="fas fa-shopping-cart"></i>
-				<span>Магазин</span>
-			</a>
-			<a href="#" class="nav-item">
-				<i class="fas fa-user"></i>
-				<span>Профиль</span>
-			</a>
-		</nav>
-	</div>
+        <!-- Нижнее меню -->
+        <nav class="bottom-nav">
+            <a href="index.html" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>Кейсы</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-gift"></i>
+                <span>Подарки</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Магазин</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-user"></i>
+                <span>Профиль</span>
+            </a>
+        </nav>
+    </div>
 
-	<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-	<script src="https://telegram.org/js/telegram-web-app.js"></script>
-	<script type="module" src="js/case.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script type="module" src="js/case.js"></script>
 </body>
 </html>

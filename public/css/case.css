@@ -261,21 +261,6 @@ input:checked + .slider:before {
     gap: 15px;
 }
 
-.prize-item {
-    background: #252525;
-    border-radius: 8px;
-    padding: 12px;
-    text-align: center;
-    transition: all 0.3s;
-}
-
-.prize-item img {
-    width: 60px;
-    height: 60px;
-    object-fit: contain;
-    margin-bottom: 8px;
-}
-
 .prize-item-name {
     color: #f5f5f5;
     font-size: 12px;
@@ -286,31 +271,6 @@ input:checked + .slider:before {
     color: #f1c40f;
     font-weight: bold;
     font-size: 14px;
-}
-
-/* Редкости предметов */
-.rarity-common {
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.rarity-uncommon {
-    border: 1px solid rgba(0, 255, 0, 0.2);
-}
-
-.rarity-rare {
-    border: 1px solid rgba(0, 100, 255, 0.3);
-}
-
-.rarity-epic {
-    border: 1px solid rgba(150, 0, 255, 0.4);
-}
-
-.rarity-legendary {
-    border: 1px solid rgba(255, 165, 0, 0.5);
-}
-
-.rarity-mythic {
-    border: 1px solid rgba(255, 0, 0, 0.6);
 }
 
 /* Кнопка назад */

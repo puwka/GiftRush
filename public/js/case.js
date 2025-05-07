@@ -116,26 +116,40 @@ async function loadCaseItems() {
 }
 
 // Загрузка возможных призов (в 2 ряда)
+// Загрузка возможных призов с названием и ценой
 async function loadPossiblePrizes() {
   if (!caseItems.length) await loadCaseItems()
   
   let html = ''
-  caseItems.forEach((item, index) => {
-    // Добавляем перенос после половины предметов
-    if (index === Math.ceil(caseItems.length / 2)) {
-      html += '</div><div class="prizes-row">'
-    }
-    
+  caseItems.forEach(item => {
     html += `
-      <div class="prize-item rarity-${item.rarity || 'common'}">
-        <img src="${item.image_url || 'https://via.placeholder.com/60'}" alt="${item.name}">
+      <div class="prize-card rarity-${item.rarity || 'common'}">
+        <div class="prize-image">
+          <img src="${item.image_url || 'https://via.placeholder.com/120'}" alt="${item.name}">
+        </div>
+        <div class="prize-info">
+          <div class="prize-name">${item.name}</div>
+          <div class="prize-value">${item.value} <i class="fas fa-coins"></i></div>
+        </div>
       </div>
     `
   })
   
-  possiblePrizes.innerHTML = `
-    <div class="prizes-row">${html}</div>
-  `
+  possiblePrizes.innerHTML = html
+}
+
+// Демо-режим
+demoModeToggle?.addEventListener('change', function() {
+  if (this.checked) {
+    userBalance.textContent = "∞"
+  } else {
+    userBalance.textContent = currentBalance
+  }
+})
+
+// В функции initApp добавьте:
+if (demoModeToggle?.checked) {
+  userBalance.textContent = "∞"
 }
 
 // Настройка обработчиков событий

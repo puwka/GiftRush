@@ -352,6 +352,82 @@ input:checked + .slider:before {
     margin-bottom: 15px;
 }
 
+/* Контейнер призов */
+.prizes-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 15px;
+    width: 100%;
+}
+
+/* Карточка приза */
+.prize-card {
+    background: #252525;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: 2px solid;
+}
+
+.prize-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.prize-image {
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1e1e1e;
+    padding: 10px;
+}
+
+.prize-image img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.prize-info {
+    padding: 12px;
+    text-align: center;
+}
+
+.prize-name {
+    font-size: 14px;
+    color: #f5f5f5;
+    margin-bottom: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.prize-value {
+    color: #f1c40f;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+}
+
+/* Редкости */
+.rarity-common { border-color: #aaa; }
+.rarity-uncommon { border-color: #2ecc71; }
+.rarity-rare { border-color: #3498db; }
+.rarity-epic { border-color: #9b59b6; }
+.rarity-legendary { border-color: #f1c40f; }
+.rarity-mythic { border-color: #e74c3c; }
+
+/* Демо-режим */
+.demo-mode-toggle {
+    margin: 20px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 /* Элементы рулетки (только изображение) */
 .roulette-item {
     min-width: 150px;

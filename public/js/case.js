@@ -16,13 +16,17 @@ const caseId = urlParams.get('id')
 // Элементы DOM
 const caseName = document.getElementById('case-name')
 const casePriceValue = document.getElementById('case-price-value')
-const openSingleBtn = document.getElementById('open-single')
-const openThreeBtn = document.getElementById('open-three')
+const openSingleBtn = document.getElementById('open-case')
 const rouletteItems = document.getElementById('roulette-items')
 const wonPrizes = document.getElementById('won-prizes')
 const possiblePrizes = document.getElementById('possible-prizes')
 const demoModeToggle = document.getElementById('demo-mode')
 const userBalance = document.getElementById('user-balance')
+
+// Проверяем, существуют ли элементы в case.html
+if (!openSingleBtn || !openThreeBtn) {
+  console.log('Элементы для открытия кейсов не найдены, возможно, это не страница case.html')
+}
 
 // Переменные состояния
 let currentCase = null
@@ -145,9 +149,20 @@ async function loadPossiblePrizes() {
 }
 
 // Настройка обработчиков событий
+// Настройка обработчиков событий
 function setupEventListeners() {
-  openSingleBtn.addEventListener('click', () => openCases(1))
-  openThreeBtn.addEventListener('click', () => openCases(3))
+  // Проверяем существование элементов перед добавлением обработчиков
+  if (openSingleBtn) {
+    openSingleBtn.addEventListener('click', () => openCases(1))
+  }
+
+  // Добавляем обработчик для кнопки "Назад"
+  const backBtn = document.getElementById('back-btn')
+  if (backBtn) {
+    backBtn.addEventListener('click', () => {
+      window.location.href = 'index.html'
+    })
+  }
 }
 
 // Открытие кейсов

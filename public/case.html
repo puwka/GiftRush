@@ -123,6 +123,39 @@
         </nav>
     </div>
 
+    <!-- Модальное окно выигрыша -->
+    <div class="win-modal hidden" id="win-modal">
+        <div class="win-modal-overlay"></div>
+        <div class="win-modal-content">
+            <div class="win-modal-header">
+                <h2>Поздравляем!</h2>
+                <div class="win-modal-close" id="close-win-modal">
+                    <i class="fas fa-times"></i>
+                </div>
+            </div>
+            <div class="win-modal-body">
+                <div class="won-item-container">
+                    <div class="won-item-glow"></div>
+                    <div class="won-item" id="won-item">
+                        <img src="" alt="Выигрыш" class="won-item-image">
+                    </div>
+                </div>
+                <div class="won-item-info">
+                    <h3 class="won-item-name" id="won-item-name"></h3>
+                    <div class="won-item-value" id="won-item-value"></div>
+                </div>
+            </div>
+            <div class="win-modal-footer">
+                <button class="win-modal-btn sell-btn" id="sell-item-btn">
+                    <i class="fas fa-coins"></i> Продать
+                </button>
+                <button class="win-modal-btn keep-btn" id="keep-item-btn">
+                    <i class="fas fa-check"></i> Оставить
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script type="module" src="js/case.js"></script>

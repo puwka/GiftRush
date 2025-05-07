@@ -401,10 +401,8 @@ async function saveResults() {
       userBalance.textContent = currentBalance
     }
     
-    tg.showAlert(`Вы успешно открыли ${quantity} кейс(а)`)
   } catch (error) {
     console.error('Ошибка сохранения результатов:', error)
-    tg.showAlert('Произошла ошибка при сохранении результатов')
   }
 }
 

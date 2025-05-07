@@ -50,6 +50,60 @@
 }
 
 /* Рулетка */
+.roulette-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 3px;
+    height: 90%;
+    background: rgba(255, 255, 255, 0.15);
+    z-index: 10;
+}
+
+.roulette-center:before,
+.roulette-center:after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Перевернутые стрелки */
+.roulette-center:before {
+    border-top: 30px solid #8e44ad; /* Стрелка вниз */
+    top: -20px;
+}
+
+.roulette-center:after {
+    border-bottom: 30px solid #8e44ad; /* Стрелка вверх */
+    bottom: -20px;
+}
+
+/* Обновленный контейнер рулетки */
+.roulette-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    background: #1e1e1e;
+    border: 1px solid #2d2d2d;
+}
+
+/* Эффект при вращении */
+.roulette-container.spinning .roulette-center {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.roulette-container.spinning .roulette-center:before,
+.roulette-container.spinning .roulette-center:after {
+    border-top-color: #9b59b6;
+    border-bottom-color: #9b59b6;
+}
+
 .roulette-container {
     position: relative;
     width: 100%;
@@ -81,39 +135,6 @@
     width: 120px;
     height: 120px;
     object-fit: contain;
-}
-
-.roulette-center {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 5px;
-    height: 80%;
-    background: rgba(255, 255, 255, 0.1);
-    z-index: 2;
-}
-
-.roulette-center:before,
-.roulette-center:after {
-    content: '';
-    position: absolute;
-    width: 0;
-    height: 0;
-    border-left: 15px solid transparent;
-    border-right: 15px solid transparent;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.roulette-center:before {
-    border-bottom: 15px solid #8e44ad;
-    top: -15px;
-}
-
-.roulette-center:after {
-    border-top: 15px solid #8e44ad;
-    bottom: -15px;
 }
 
 /* Кнопка открытия */

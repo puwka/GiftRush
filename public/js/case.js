@@ -310,10 +310,6 @@ async function openCases(count) {
               console.log('Кейс показан');
           }
           
-          if (wonItems.length > 0) {
-              tg.showAlert(`Вы выиграли: ${wonItems[0].name}`);
-          }
-          
           isSpinning = false;
           enableButtons();
       }, 500);

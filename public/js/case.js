@@ -23,6 +23,9 @@ const demoModeToggle = document.getElementById('demo-mode')
 const userBalance = document.getElementById('user-balance')
 const totalPriceElement = document.getElementById('total-price')
 const totalPriceBtnElement = document.getElementById('total-price-btn')
+const caseImageContainer = document.getElementById('case-image-container');
+const rouletteContainer = document.getElementById('roulette-container');
+
 
 // Переменные состояния
 let currentCase = null
@@ -36,24 +39,34 @@ let currentPosition = 0;
 let targetPosition = 0;
 let spinStartTime = 0;
 let spinDuration = 6000; // 6 секунд анимации
+let isFirstSpin = true;
 
 // Основная функция инициализации
 async function initApp() {
+  // Проверяем существование элементов перед работой с ними
+  if (caseImageContainer) {
+    caseImageContainer.classList.remove('hidden');
+  }
+  
+  if (rouletteContainer) {
+    rouletteContainer.classList.add('hidden');
+  }
+
   // В функции initApp:
   if (demoModeToggle) {
     // Установка начального состояния
     if (!tg.initDataUnsafe?.user) {
         demoModeToggle.checked = true;
-        userBalance.textContent = "∞";
+        if (userBalance) userBalance.textContent = "∞";
     }
     
     // Обработчик изменения
     demoModeToggle.addEventListener('change', function() {
         if (this.checked) {
-            userBalance.textContent = "∞";
+            if (userBalance) userBalance.textContent = "∞";
             tg.showAlert("Демо-режим активирован");
         } else {
-            userBalance.textContent = currentBalance;
+            if (userBalance) userBalance.textContent = currentBalance;
             tg.showAlert("Демо-режим деактивирован");
         }
     });
@@ -72,7 +85,7 @@ async function initApp() {
     }
   } else {
     console.log('Пользователь Telegram не авторизован')
-    demoModeToggle.checked = true
+    if (demoModeToggle) demoModeToggle.checked = true
     await loadCaseData()
     await loadPossiblePrizes()
     setupEventListeners()
@@ -236,64 +249,85 @@ function updateTotalPrice() {
 
 function spinRoulette() {
   return new Promise(resolve => {
-    const itemWidth = 150;
-    const itemsCount = caseItems.length;
-    const targetIndex = Math.floor(Math.random() * itemsCount);
-    
-    // Создаем 10 копий предметов для бесконечного вращения
-    const extendedItems = Array(10).fill().flatMap(() => caseItems);
-    rouletteItems.innerHTML = extendedItems.map(item => `
-      <div class="roulette-item" data-item-id="${item.id}">
-        <img src="${item.image_url || 'https://via.placeholder.com/150'}" alt="${item.name}">
-      </div>
-    `).join('');
-
-    const totalDuration = 6000; // 6 секунд общее время
-    const fastDuration = 4000;  // 4 секунды быстрого вращения
-    const slowDuration = 2000;  // 2 секунды замедления
-    
-    // Рассчитываем позицию для остановки (5 полных кругов + targetIndex)
-    const targetPosition = (itemsCount * 5 + targetIndex) * itemWidth;
-    let startTime = null;
-    let distanceCovered = 0;
-
-    function animate(timestamp) {
-      if (!startTime) startTime = timestamp;
-      const elapsed = timestamp - startTime;
-      const progress = Math.min(elapsed / totalDuration, 1);
-
-      if (elapsed < fastDuration) {
-        // Первые 4 секунды - постоянная скорость (80% расстояния)
-        distanceCovered = (targetPosition * 0.8) * (elapsed / fastDuration);
-      } else {
-        // Последние 2 секунды - плавное замедление (оставшиеся 20% расстояния)
-        const slowProgress = (elapsed - fastDuration) / slowDuration;
-        const slowEasing = 1 - Math.pow(1 - slowProgress, 3); // Кубическое замедление
-        distanceCovered = (targetPosition * 0.8) + (targetPosition * 0.2) * slowEasing;
-      }
-
-      rouletteItems.style.transform = `translateX(-${distanceCovered}px)`;
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        // После анимации оставляем только оригинальные предметы
-        rouletteItems.innerHTML = caseItems.map(item => `
+      const itemWidth = 150;
+      const itemsCount = caseItems.length;
+      const targetIndex = Math.floor(Math.random() * itemsCount);
+      
+      // Создаем 10 копий предметов для бесконечного вращения
+      const extendedItems = Array(10).fill().flatMap(() => caseItems);
+      rouletteItems.innerHTML = extendedItems.map(item => `
           <div class="roulette-item" data-item-id="${item.id}">
-            <img src="${item.image_url || 'https://via.placeholder.com/150'}" alt="${item.name}">
+              <img src="${item.image_url || 'https://via.placeholder.com/150'}" alt="${item.name}">
           </div>
-        `).join('');
-        
-        // Позиционируем на выигранном предмете
-        const finalPosition = targetIndex * itemWidth;
-        rouletteItems.style.transform = `translateX(-${finalPosition}px)`;
-        
-        wonItems.push(caseItems[targetIndex]);
-        resolve();
-      }
-    }
+      `).join('');
 
-    requestAnimationFrame(animate);
+      // Настройки анимации
+      const totalDuration = 6000; // 6 секунд общее время
+      const fastDuration = 4000;  // 4 секунды быстрого вращения
+      const slowDuration = 2000;  // 2 секунды замедления
+      const targetPosition = (itemsCount * 5 + targetIndex) * itemWidth;
+      
+      let startTime = null;
+      let distanceCovered = 0;
+
+      // Плавное появление рулетки
+      rouletteContainer.style.opacity = '0';
+      rouletteContainer.style.transition = 'opacity 0.3s ease-out';
+      setTimeout(() => {
+          rouletteContainer.style.opacity = '1';
+      }, 10);
+
+      function animate(timestamp) {
+          if (!startTime) startTime = timestamp;
+          const elapsed = timestamp - startTime;
+          const progress = Math.min(elapsed / totalDuration, 1);
+
+          // Фаза быстрого вращения (первые 4 секунды)
+          if (elapsed < fastDuration) {
+              distanceCovered = (targetPosition * 0.8) * (elapsed / fastDuration);
+          } 
+          // Фаза замедления (последние 2 секунды)
+          else {
+              const slowProgress = (elapsed - fastDuration) / slowDuration;
+              const slowEasing = 1 - Math.pow(1 - slowProgress, 4); // Сильное замедление
+              distanceCovered = (targetPosition * 0.8) + (targetPosition * 0.2) * slowEasing;
+          }
+
+          rouletteItems.style.transform = `translateX(-${distanceCovered}px)`;
+
+          if (progress < 1) {
+              requestAnimationFrame(animate);
+          } else {
+              // Плавное исчезновение рулетки
+              rouletteContainer.style.transition = 'opacity 0.5s ease-in';
+              rouletteContainer.style.opacity = '0';
+              
+              // После анимации возвращаем оригинальные предметы
+              setTimeout(() => {
+                  rouletteItems.innerHTML = caseItems.map(item => `
+                      <div class="roulette-item" data-item-id="${item.id}">
+                          <img src="${item.image_url || 'https://via.placeholder.com/150'}" alt="${item.name}">
+                      </div>
+                  `).join('');
+                  
+                  // Точная остановка на выигранном предмете
+                  const finalPosition = targetIndex * itemWidth;
+                  rouletteItems.style.transform = `translateX(-${finalPosition}px)`;
+                  
+                  // Запоминаем выигрыш
+                  wonItems.push(caseItems[targetIndex]);
+                  
+                  // Возвращаем видимость контейнерам
+                  setTimeout(() => {
+                      caseImageContainer.style.transition = 'opacity 0.5s ease-out';
+                      caseImageContainer.style.opacity = '1';
+                      resolve();
+                  }, 100);
+              }, 500); // Задержка перед сбросом
+          }
+      }
+
+      requestAnimationFrame(animate);
   });
 }
 
@@ -301,40 +335,48 @@ function spinRoulette() {
 async function openCases(count) {
   if (isSpinning) return;
   
-  const demoMode = demoModeToggle.checked;
+  const demoMode = demoModeToggle?.checked;
   const price = currentCase.price * count;
   
   if (!demoMode && currentBalance < price) {
-    tg.showAlert('Недостаточно средств на балансе');
-    return;
+      tg.showAlert('Недостаточно средств на балансе');
+      return;
   }
   
   isSpinning = true;
   disableButtons();
   wonItems = [];
   
+  // Показываем рулетку и скрываем изображение кейса
+  if (caseImageContainer) caseImageContainer.classList.add('hidden');
+  if (rouletteContainer) rouletteContainer.classList.remove('hidden');
+  
   try {
-    await spinRoulette();
-    
-    if (!demoMode) {
-      // Обновляем баланс
-      currentBalance -= price;
-      userBalance.textContent = currentBalance;
+      await spinRoulette();
       
-      // Сохраняем результаты
-      await saveResults();
-      
-      // Показываем выигрыш
-      if (wonItems.length > 0) {
-        tg.showAlert(`Вы выиграли: ${wonItems[0].name} (${wonItems[0].value} монет)`);
+      if (!demoMode) {
+          currentBalance -= price;
+          if (userBalance) userBalance.textContent = currentBalance;
+          await saveResults();
       }
-    }
+      
+      // После завершения анимации показываем изображение кейса снова
+      setTimeout(() => {
+          if (caseImageContainer) caseImageContainer.classList.remove('hidden');
+          if (rouletteContainer) rouletteContainer.classList.add('hidden');
+          
+          if (wonItems.length > 0) {
+              tg.showAlert(`Вы выиграли: ${wonItems[0].name} (${wonItems[0].value} монет)`);
+          }
+          
+          isSpinning = false;
+          enableButtons();
+      }, 1000);
   } catch (error) {
-    console.error('Ошибка при открытии кейса:', error);
-    tg.showAlert('Произошла ошибка при открытии кейса');
-  } finally {
-    isSpinning = false;
-    enableButtons();
+      console.error('Ошибка при открытии кейса:', error);
+      tg.showAlert('Произошла ошибка при открытии кейса');
+      isSpinning = false;
+      enableButtons();
   }
 }
 

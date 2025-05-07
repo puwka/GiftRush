@@ -153,11 +153,11 @@ function setupEventListeners() {
     if (caseItem) {
         const caseId = caseItem.dataset.caseId
         if (caseId) {
-            // Используем относительный путь, который будет работать везде
-            window.location.href = `/case.html?id=${caseId}`
+            const baseUrl = window.location.hostname === 'localhost' ? '' : 'https://gift-rush.vercel.app'
+            window.location.href = `${baseUrl}/case.html?id=${caseId}`
         }
     }
-  })
+})
   
   // Кнопка пополнения баланса
   document.querySelector('.action-btn.purple')?.addEventListener('click', function() {

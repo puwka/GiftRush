@@ -30,6 +30,12 @@ let caseItems = []
 let isSpinning = false
 let currentBalance = 0
 let quantity = 1
+let wonItems = [] // Добавьте эту строку
+let animationId = null;
+let currentPosition = 0;
+let targetPosition = 0;
+let spinStartTime = 0;
+let spinDuration = 6000; // 6 секунд анимации
 
 // Основная функция инициализации
 async function initApp() {
@@ -228,60 +234,143 @@ function updateTotalPrice() {
   }
 }
 
-// Открытие кейсов
-async function openCases(count) {
-  if (isSpinning) return
-  
-  const demoMode = demoModeToggle.checked
-  const price = currentCase.price * count
-  
-  if (!demoMode && currentBalance < price) {
-    tg.showAlert('Недостаточно средств на балансе')
-    return
-  }
-  
-  isSpinning = true
-  disableButtons()
-  wonItems = []
-  
-  await spinRoulette()
-  
-  if (!demoMode) {
-    await saveResults()
-  }
-  
-  isSpinning = false
-  enableButtons()
-}
-
-// Анимация рулетки
 function spinRoulette() {
   return new Promise(resolve => {
-    const itemWidth = 150
-    const spinDistance = Math.floor(Math.random() * 1000) + 1000
-    const spinDuration = 3000
+    const itemWidth = 150;
+    const itemsCount = caseItems.length;
+    const targetIndex = Math.floor(Math.random() * itemsCount);
     
-    let startTime = null
+    // Создаем 10 копий предметов для бесконечного вращения
+    const extendedItems = Array(10).fill().flatMap(() => caseItems);
+    rouletteItems.innerHTML = extendedItems.map(item => `
+      <div class="roulette-item" data-item-id="${item.id}">
+        <img src="${item.image_url || 'https://via.placeholder.com/150'}" alt="${item.name}">
+      </div>
+    `).join('');
+
+    const totalDuration = 6000; // 6 секунд общее время
+    const fastDuration = 4000;  // 4 секунды быстрого вращения
+    const slowDuration = 2000;  // 2 секунды замедления
     
+    // Рассчитываем позицию для остановки (5 полных кругов + targetIndex)
+    const targetPosition = (itemsCount * 5 + targetIndex) * itemWidth;
+    let startTime = null;
+    let distanceCovered = 0;
+
     function animate(timestamp) {
-      if (!startTime) startTime = timestamp
-      const progress = timestamp - startTime
-      const percentage = Math.min(progress / spinDuration, 1)
-      const easing = 1 - Math.pow(1 - percentage, 3)
-      
-      rouletteItems.style.transform = `translateX(-${spinDistance * easing}px)`
-      
-      if (progress < spinDuration) {
-        requestAnimationFrame(animate)
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const progress = Math.min(elapsed / totalDuration, 1);
+
+      if (elapsed < fastDuration) {
+        // Первые 4 секунды - постоянная скорость (80% расстояния)
+        distanceCovered = (targetPosition * 0.8) * (elapsed / fastDuration);
       } else {
-        const centerOffset = Math.floor(spinDistance / itemWidth) * itemWidth
-        rouletteItems.style.transform = `translateX(-${centerOffset}px)`
-        resolve()
+        // Последние 2 секунды - плавное замедление (оставшиеся 20% расстояния)
+        const slowProgress = (elapsed - fastDuration) / slowDuration;
+        const slowEasing = 1 - Math.pow(1 - slowProgress, 3); // Кубическое замедление
+        distanceCovered = (targetPosition * 0.8) + (targetPosition * 0.2) * slowEasing;
+      }
+
+      rouletteItems.style.transform = `translateX(-${distanceCovered}px)`;
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        // После анимации оставляем только оригинальные предметы
+        rouletteItems.innerHTML = caseItems.map(item => `
+          <div class="roulette-item" data-item-id="${item.id}">
+            <img src="${item.image_url || 'https://via.placeholder.com/150'}" alt="${item.name}">
+          </div>
+        `).join('');
+        
+        // Позиционируем на выигранном предмете
+        const finalPosition = targetIndex * itemWidth;
+        rouletteItems.style.transform = `translateX(-${finalPosition}px)`;
+        
+        wonItems.push(caseItems[targetIndex]);
+        resolve();
       }
     }
+
+    requestAnimationFrame(animate);
+  });
+}
+
+// Обновляем функцию openCases для использования новой анимации
+async function openCases(count) {
+  if (isSpinning) return;
+  
+  const demoMode = demoModeToggle.checked;
+  const price = currentCase.price * count;
+  
+  if (!demoMode && currentBalance < price) {
+    tg.showAlert('Недостаточно средств на балансе');
+    return;
+  }
+  
+  isSpinning = true;
+  disableButtons();
+  wonItems = [];
+  
+  try {
+    await spinRoulette();
     
-    requestAnimationFrame(animate)
-  })
+    if (!demoMode) {
+      // Обновляем баланс
+      currentBalance -= price;
+      userBalance.textContent = currentBalance;
+      
+      // Сохраняем результаты
+      await saveResults();
+      
+      // Показываем выигрыш
+      if (wonItems.length > 0) {
+        tg.showAlert(`Вы выиграли: ${wonItems[0].name} (${wonItems[0].value} монет)`);
+      }
+    }
+  } catch (error) {
+    console.error('Ошибка при открытии кейса:', error);
+    tg.showAlert('Произошла ошибка при открытии кейса');
+  } finally {
+    isSpinning = false;
+    enableButtons();
+  }
+}
+
+async function saveResults() {
+  try {
+    // Обновляем баланс пользователя
+    const newBalance = currentBalance - (currentCase.price * quantity)
+    
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ balance: newBalance })
+      .eq('tg_id', tg.initDataUnsafe.user.id)
+    
+    if (updateError) throw updateError
+    
+    // Записываем транзакцию
+    await supabase
+      .from('transactions')
+      .insert({
+        user_id: tg.initDataUnsafe.user.id,
+        amount: currentCase.price * quantity,
+        type: 'case_open',
+        description: `Открытие кейса "${currentCase.name}" (${quantity} шт)`
+      })
+    
+    // Обновляем UI
+    currentBalance = newBalance
+    if (!demoModeToggle.checked) {
+      userBalance.textContent = currentBalance
+    }
+    
+    tg.showAlert(`Вы успешно открыли ${quantity} кейс(а)`)
+  } catch (error) {
+    console.error('Ошибка сохранения результатов:', error)
+    tg.showAlert('Произошла ошибка при сохранении результатов')
+  }
 }
 
 // Отключение/включение кнопок

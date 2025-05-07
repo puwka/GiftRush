@@ -24,7 +24,7 @@ const demoModeToggle = document.getElementById('demo-mode')
 const userBalance = document.getElementById('user-balance')
 
 // Проверяем, существуют ли элементы в case.html
-if (!openSingleBtn || !openThreeBtn) {
+if (!openSingleBtn) {
   console.log('Элементы для открытия кейсов не найдены, возможно, это не страница case.html')
 }
 

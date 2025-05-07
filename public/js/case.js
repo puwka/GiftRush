@@ -15,13 +15,14 @@ const caseId = urlParams.get('id')
 
 // Элементы DOM
 const caseName = document.getElementById('case-name')
-const casePriceValue = document.getElementById('case-price-value')
+const casePriceValue = document.getElementById('total-price')
 const openCaseBtn = document.getElementById('open-case')
 const rouletteItems = document.getElementById('roulette-items')
 const possiblePrizes = document.getElementById('possible-prizes')
 const demoModeToggle = document.getElementById('demo-mode')
 const userBalance = document.getElementById('user-balance')
-const totalPrice = document.getElementById('total-price')
+const totalPriceElement = document.getElementById('total-price')
+const totalPriceBtnElement = document.getElementById('total-price-btn')
 
 // Переменные состояния
 let currentCase = null
@@ -32,6 +33,26 @@ let quantity = 1
 
 // Основная функция инициализации
 async function initApp() {
+  // В функции initApp:
+  if (demoModeToggle) {
+    // Установка начального состояния
+    if (!tg.initDataUnsafe?.user) {
+        demoModeToggle.checked = true;
+        userBalance.textContent = "∞";
+    }
+    
+    // Обработчик изменения
+    demoModeToggle.addEventListener('change', function() {
+        if (this.checked) {
+            userBalance.textContent = "∞";
+            tg.showAlert("Демо-режим активирован");
+        } else {
+            userBalance.textContent = currentBalance;
+            tg.showAlert("Демо-режим деактивирован");
+        }
+    });
+  }
+
   if (tg.initDataUnsafe.user) {
     try {
       await loadUserData()
@@ -154,20 +175,24 @@ if (demoModeToggle?.checked) {
 
 // Настройка обработчиков событий
 function setupEventListeners() {
+  // Управление количеством
+  document.getElementById('increase-qty')?.addEventListener('click', () => {
+    if (quantity < 3) {
+        quantity++;
+        updateQuantity();
+    }
+  });
+
+  document.getElementById('decrease-qty')?.addEventListener('click', () => {
+      if (quantity > 1) {
+          quantity--;
+          updateQuantity();
+      }
+  });
+
   if (openCaseBtn) {
     openCaseBtn.addEventListener('click', () => openCases(quantity))
   }
-
-  // Обработчики изменения количества
-  document.getElementById('increase-qty')?.addEventListener('click', () => {
-    quantity = Math.min(quantity + 1, 10)
-    updateQuantity()
-  })
-
-  document.getElementById('decrease-qty')?.addEventListener('click', () => {
-    quantity = Math.max(quantity - 1, 1)
-    updateQuantity()
-  })
 }
 
 // Обновление количества
@@ -176,10 +201,19 @@ function updateQuantity() {
   updateTotalPrice()
 }
 
-// Обновление общей цены
 function updateTotalPrice() {
   if (currentCase) {
-    totalPrice.textContent = currentCase.price * quantity
+      const total = currentCase.price * quantity;
+      // Обновляем оба элемента с ценой
+      document.getElementById('total-price').textContent = total;
+      
+      // Обновляем текст кнопки в зависимости от количества
+      const openText = document.getElementById('open-text');
+      if (quantity > 1) {
+          openText.textContent = `ОТКРЫТЬ ${quantity} КЕЙСА`;
+      } else {
+          openText.textContent = 'ОТКРЫТЬ КЕЙС';
+      }
   }
 }
 

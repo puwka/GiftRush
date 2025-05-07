@@ -47,29 +47,42 @@
         <main class="case-content">
             <div class="case-header">
                 <h1 id="case-name">Название кейса</h1>
-                <div class="case-price">
-                    <i class="fas fa-coins"></i>
-                    <span id="case-price-value">0</span>
-                </div>
             </div>
 
-            <!-- Рулетка с перевернутыми стрелками -->
+            <!-- Рулетка -->
             <div class="roulette-container">
                 <div class="roulette-items" id="roulette-items">
                     <!-- Элементы рулетки будут загружаться динамически -->
                 </div>
-                <div class="roulette-center reversed"></div>
+                <div class="roulette-center"></div>
+            </div>
+
+            <!-- Цена и управление количеством -->
+            <div class="case-controls">
+                <div class="quantity-selector">
+                    <button class="quantity-btn" id="decrease-qty">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <span class="quantity-value" id="case-quantity">1</span>
+                    <button class="quantity-btn" id="increase-qty">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                
+                <div class="case-price">
+                    <i class="fas fa-coins"></i>
+                    <span id="total-price">0</span>
+                </div>
             </div>
 
             <!-- Кнопка открытия -->
             <button class="open-case-btn" id="open-case">
-                ОТКРЫТЬ КЕЙС
-                <span class="total-price" id="total-price">0</span>
+                <span id="open-text">ОТКРЫТЬ КЕЙС</span>
             </button>
 
             <!-- Демо-режим -->
-            <div class="demo-mode-toggle">
-                <label class="toggle-switch">
+            <div class="demo-mode-container">
+                <label class="demo-mode-toggle">
                     <input type="checkbox" id="demo-mode">
                     <span class="slider"></span>
                     <span class="toggle-label">Демо-режим</span>

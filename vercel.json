@@ -12,6 +12,10 @@
     {
       "src": "js/*",
       "use": "@vercel/static"
+    },
+    {
+      "src": "img/*",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -30,6 +34,10 @@
     {
       "src": "/js/(.*)",
       "dest": "/js/$1"
+    },
+    {
+      "src": "/img/(.*)",
+      "dest": "/img/$1"
     },
     {
       "src": "/(.*)",

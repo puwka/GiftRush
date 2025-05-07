@@ -155,7 +155,7 @@ function setupEventListeners() {
         const caseId = caseItem.dataset.caseId
         if (caseId) {
             // Используем относительный путь
-            window.location.href = `case.html?id=${caseId}`
+            window.location.href = `./case.html?id=${caseId}`
         }
     }
   })

@@ -139,14 +139,23 @@ function setupEventListeners() {
   })
   
   // Кнопка профиля в хедере
+  profileBtn.addEventListener('click', function() {
+    tabLinks.forEach(item => item.classList.remove('active'))
+    document.querySelector('.nav-item[data-tab="profile-tab"]').classList.add('active')
+    
+    tabContents.forEach(content => content.classList.add('hidden'))
+    document.getElementById('profile-tab').classList.remove('hidden')
+  })
+
+  // Обработчики кликов по карточкам кейсов
   document.addEventListener('click', function(e) {
     const caseItem = e.target.closest('.case-item')
     if (caseItem) {
-      const caseId = caseItem.dataset.caseId
-      if (caseId) {
-        // Для Vercel используем абсолютный путь
-        window.location.href = `https://gift-rush.vercel.app/case.html?id=${caseId}`
-      }
+        const caseId = caseItem.dataset.caseId
+        if (caseId) {
+            // Используем относительный путь, который будет работать везде
+            window.location.href = `/case.html?id=${caseId}`
+        }
     }
   })
   

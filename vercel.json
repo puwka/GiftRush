@@ -16,12 +16,12 @@
   ],
   "routes": [
     {
-      "src": "/",
-      "dest": "/index.html"
+      "src": "/case.html",
+      "dest": "/case.html"
     },
     {
-      "src": "/case",
-      "dest": "/case.html"
+      "src": "/(.*)",
+      "dest": "/index.html"
     },
     {
       "src": "/css/(.*)",

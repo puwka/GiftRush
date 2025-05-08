@@ -383,9 +383,11 @@ async function saveItemToInventory(item) {
           if (insertError) throw insertError;
       }
       
-      // Обновляем статистику выигранных призов
-      const statPrizes = document.querySelector('.stat-item:nth-child(3) .stat-value');
-      statPrizes.textContent = parseInt(statPrizes.textContent) + 1;
+      // Обновляем статистику выигранных призов (если элемент существует)
+      const statPrizesElement = document.querySelector('.stat-item:nth-child(3) .stat-value');
+      if (statPrizesElement) {
+          statPrizesElement.textContent = parseInt(statPrizesElement.textContent || '0') + 1;
+      }
       
   } catch (error) {
       console.error('Ошибка сохранения предмета:', error);

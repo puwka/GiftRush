@@ -481,18 +481,7 @@ async function processDeposit() {
       invoiceParams.provider_token = 'Stripe TEST MODE'
     } else if (method === 'ton') {
       invoiceParams.prices = [{ label: `${amount} TON`, amount: amount * 1000000000 }] // 1 TON = 10^9 нанотон
-      // Стало:
-      if (method === 'ton') {
-        const success = await sendTONPayment(
-          amount, // Сумма в TON
-          'ВАШ_TON_АДРЕС' // Ваш кошелек для приема платежей
-        );
-        if (success) {
-          const totalAmount = amount * 240; // С учетом бонуса 20%
-          await completeDeposit(tg.initDataUnsafe.user.id, totalAmount, 'ton');
-        }
-        return;
-      }
+      invoiceParams.provider_token = 'Stripe TEST MODE'
     }
 
     // Открываем платежное окно Telegram

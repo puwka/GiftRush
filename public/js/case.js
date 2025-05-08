@@ -67,10 +67,8 @@ async function initApp() {
     demoModeToggle.addEventListener('change', function() {
       if (this.checked) {
         if (userBalance) userBalance.textContent = "∞"
-        tg.showAlert("Демо-режим активирован")
       } else {
         if (userBalance) userBalance.textContent = currentBalance
-        tg.showAlert("Демо-режим деактивирован")
       }
     })
   }
@@ -214,7 +212,6 @@ function setupEventListeners() {
     const itemValue = parseInt(document.getElementById('won-item-value').textContent);
     if (confirm(`Продать предмет за ${itemValue} монет?`)) {
       // Логика продажи предмета
-      tg.showAlert(`Предмет продан за ${itemValue} монет!`);
       tryAgain();
     }
   });
@@ -321,6 +318,7 @@ async function openCases(count) {
   isSpinning = false;
 }
 
+// В функцию showWonItem добавьте сохранение предмета:
 async function showWonItem(item) {
   return new Promise(resolve => {
       wonItemImage.src = item.image_url || 'https://via.placeholder.com/150';
@@ -340,9 +338,58 @@ async function showWonItem(item) {
       setTimeout(() => {
           wonItemContainer.style.opacity = '1';
           wonItemContainer.style.transform = 'translateY(0)';
+          
+          // Сохраняем предмет в инвентарь (если не демо-режим)
+          if (tg.initDataUnsafe?.user && !demoModeToggle.checked) {
+              saveItemToInventory(item);
+          }
+          
           resolve();
       }, 50);
   });
+}
+
+// Добавьте новую функцию для сохранения предмета:
+async function saveItemToInventory(item) {
+  try {
+      // Проверяем, есть ли уже такой предмет у пользователя
+      const { data: existingItem, error: findError } = await supabase
+          .from('user_items')
+          .select('*')
+          .eq('user_id', tg.initDataUnsafe.user.id)
+          .eq('item_id', item.id)
+          .maybeSingle();
+      
+      if (findError) throw findError;
+      
+      if (existingItem) {
+          // Увеличиваем количество, если предмет уже есть
+          const { error: updateError } = await supabase
+              .from('user_items')
+              .update({ quantity: existingItem.quantity + 1 })
+              .eq('id', existingItem.id);
+          
+          if (updateError) throw updateError;
+      } else {
+          // Создаем новую запись, если предмета нет
+          const { error: insertError } = await supabase
+              .from('user_items')
+              .insert({
+                  user_id: tg.initDataUnsafe.user.id,
+                  item_id: item.id,
+                  quantity: 1
+              });
+          
+          if (insertError) throw insertError;
+      }
+      
+      // Обновляем статистику выигранных призов
+      const statPrizes = document.querySelector('.stat-item:nth-child(3) .stat-value');
+      statPrizes.textContent = parseInt(statPrizes.textContent) + 1;
+      
+  } catch (error) {
+      console.error('Ошибка сохранения предмета:', error);
+  }
 }
 
 function tryAgain() {

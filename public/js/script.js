@@ -19,6 +19,10 @@ const statBalance = document.querySelector('.stat-item:nth-child(1) .stat-value'
 const statCases = document.querySelector('.stat-item:nth-child(2) .stat-value')
 const statPrizes = document.querySelector('.stat-item:nth-child(3) .stat-value')
 const casesContainer = document.getElementById('cases-container')
+const inventoryItemsContainer = document.getElementById('inventory-items')
+
+// Переменные состояния
+let currentBalance = 0
 
 // Основная функция инициализации
 async function initApp() {
@@ -76,6 +80,7 @@ async function loadUserStats(userId) {
     if (!userError) {
       statBalance.textContent = userData.balance
       userBalance.textContent = userData.balance
+      currentBalance = userData.balance
     }
 
     // Получаем количество открытых кейсов
@@ -107,6 +112,7 @@ async function loadUserStats(userId) {
 function updateUI(user) {
   // Шапка
   userBalance.textContent = user.balance || '0'
+  currentBalance = user.balance || 0
   
   // Профиль
   usernameElement.textContent = user.username || `ID: ${user.tg_id}`
@@ -120,7 +126,270 @@ function updateUI(user) {
   }
 }
 
-// Обработчики кнопок
+// Загрузка инвентаря
+async function loadInventory() {
+  if (!tg.initDataUnsafe?.user) return;
+  
+  try {
+    const { data: items, error } = await supabase
+      .from('user_items')
+      .select(`
+        id,
+        item_id,
+        quantity,
+        case_items (
+          name,
+          image_url,
+          value,
+          rarity,
+          is_nft
+        )
+      `)
+      .eq('user_id', tg.initDataUnsafe.user.id)
+      .neq('quantity', 0)
+    
+    if (error) throw error
+    
+    renderInventory(items)
+  } catch (error) {
+    console.error('Ошибка загрузки инвентаря:', error)
+    tg.showAlert('Произошла ошибка при загрузке инвентаря')
+  }
+}
+
+// Отображение инвентаря
+function renderInventory(items) {
+  if (!items || !items.length) {
+    inventoryItemsContainer.innerHTML = '<p class="empty-inventory">Ваш инвентарь пуст</p>'
+    return
+  }
+  
+  let html = ''
+  items.forEach(item => {
+    html += `
+      <div class="inventory-item rarity-${item.case_items.rarity || 'common'}" data-item-id="${item.id}">
+        <img src="${item.case_items.image_url || 'https://via.placeholder.com/120'}" 
+             alt="${item.case_items.name}" 
+             class="inventory-item-image">
+        <div class="inventory-item-info">
+          <div class="inventory-item-name">${item.case_items.name}</div>
+          <div class="inventory-item-value">
+            ${item.case_items.value} <i class="fas fa-coins"></i>
+          </div>
+          <div class="inventory-item-quantity">x${item.quantity}</div>
+          <div class="inventory-item-actions">
+            <button class="inventory-item-btn sell" data-item-id="${item.id}">
+              Продать
+            </button>
+            ${item.case_items.is_nft ? `
+            <button class="inventory-item-btn withdraw" data-item-id="${item.id}">
+              Вывести
+            </button>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    `
+  })
+  
+  inventoryItemsContainer.innerHTML = html
+  
+  // Добавляем обработчики для кнопок продажи
+  document.querySelectorAll('.inventory-item-btn.sell').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const itemId = this.getAttribute('data-item-id')
+      sellItem(itemId)
+    })
+  })
+  
+  // Добавляем обработчики для кнопок вывода NFT
+  document.querySelectorAll('.inventory-item-btn.withdraw').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const itemId = this.getAttribute('data-item-id')
+      withdrawNFT(itemId)
+    })
+  })
+}
+
+// Продажа предмета
+async function sellItem(itemId) {
+  if (!confirm('Вы уверены, что хотите продать этот предмет?')) return
+  
+  try {
+    // Получаем информацию о предмете
+    const { data: item, error: itemError } = await supabase
+      .from('user_items')
+      .select(`
+        id,
+        item_id,
+        quantity,
+        case_items (
+          value
+        )
+      `)
+      .eq('id', itemId)
+      .single()
+    
+    if (itemError) throw itemError
+    
+    // Обновляем баланс пользователя
+    const totalValue = item.case_items.value * item.quantity
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ balance: currentBalance + totalValue })
+      .eq('tg_id', tg.initDataUnsafe.user.id)
+    
+    if (updateError) throw updateError
+    
+    // Удаляем предмет из инвентаря
+    const { error: deleteError } = await supabase
+      .from('user_items')
+      .delete()
+      .eq('id', itemId)
+    
+    if (deleteError) throw deleteError
+    
+    // Записываем транзакцию
+    await supabase
+      .from('transactions')
+      .insert({
+        user_id: tg.initDataUnsafe.user.id,
+        amount: totalValue,
+        type: 'item_sell',
+        description: `Продажа предмета ID: ${itemId}`
+      })
+    
+    // Обновляем UI
+    currentBalance += totalValue
+    userBalance.textContent = currentBalance
+    statBalance.textContent = currentBalance
+    
+    // Перезагружаем инвентарь
+    await loadInventory()
+    
+    tg.showAlert(`Предмет успешно продан за ${totalValue} монет`)
+  } catch (error) {
+    console.error('Ошибка продажи предмета:', error)
+    tg.showAlert('Произошла ошибка при продаже предмета')
+  }
+}
+
+// Продажа всех предметов
+async function sellAllItems() {
+  if (!confirm('Вы уверены, что хотите продать все предметы?')) return
+  
+  try {
+    // Получаем все предметы пользователя
+    const { data: items, error: itemsError } = await supabase
+      .from('user_items')
+      .select(`
+        id,
+        item_id,
+        quantity,
+        case_items (
+          value
+        )
+      `)
+      .eq('user_id', tg.initDataUnsafe.user.id)
+      .neq('quantity', 0)
+    
+    if (itemsError) throw itemsError
+    
+    if (!items || !items.length) {
+      tg.showAlert('В вашем инвентаре нет предметов для продажи')
+      return
+    }
+    
+    // Считаем общую стоимость
+    let totalValue = 0
+    const itemIds = []
+    
+    items.forEach(item => {
+      totalValue += item.case_items.value * item.quantity
+      itemIds.push(item.id)
+    })
+    
+    // Обновляем баланс пользователя
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ balance: currentBalance + totalValue })
+      .eq('tg_id', tg.initDataUnsafe.user.id)
+    
+    if (updateError) throw updateError
+    
+    // Удаляем все предметы из инвентаря
+    const { error: deleteError } = await supabase
+      .from('user_items')
+      .delete()
+      .in('id', itemIds)
+    
+    if (deleteError) throw deleteError
+    
+    // Записываем транзакцию
+    await supabase
+      .from('transactions')
+      .insert({
+        user_id: tg.initDataUnsafe.user.id,
+        amount: totalValue,
+        type: 'items_sell_all',
+        description: `Продажа всех предметов (${items.length} шт)`
+      })
+    
+    // Обновляем UI
+    currentBalance += totalValue
+    userBalance.textContent = currentBalance
+    statBalance.textContent = currentBalance
+    
+    // Перезагружаем инвентарь
+    await loadInventory()
+    
+    tg.showAlert(`Все предметы успешно проданы за ${totalValue} монет`)
+  } catch (error) {
+    console.error('Ошибка продажи всех предметов:', error)
+    tg.showAlert('Произошла ошибка при продаже предметов')
+  }
+}
+
+// Вывод NFT (заглушка)
+async function withdrawNFT(itemId) {
+  tg.showAlert('Функция вывода NFT будет реализована в будущем')
+  // Здесь будет логика вывода NFT на внешний кошелек
+}
+
+// Пополнение баланса
+async function depositBalance(amount) {
+  try {
+    // Обновляем баланс
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ balance: currentBalance + amount })
+      .eq('tg_id', tg.initDataUnsafe.user.id)
+    
+    if (updateError) throw updateError
+    
+    // Записываем транзакцию
+    await supabase
+      .from('transactions')
+      .insert({
+        user_id: tg.initDataUnsafe.user.id,
+        amount: amount,
+        type: 'deposit',
+        description: `Пополнение баланса на ${amount} монет`
+      })
+    
+    // Обновляем UI
+    currentBalance += amount
+    userBalance.textContent = currentBalance
+    statBalance.textContent = currentBalance
+    
+    tg.showAlert(`Баланс успешно пополнен на ${amount} монет`)
+  } catch (error) {
+    console.error('Ошибка пополнения баланса:', error)
+    tg.showAlert('Произошла ошибка при пополнении баланса')
+  }
+}
+
+// Настройка обработчиков событий
 function setupEventListeners() {
   // Переключение вкладок
   const tabLinks = document.querySelectorAll('.nav-item')
@@ -135,6 +404,11 @@ function setupEventListeners() {
       
       tabContents.forEach(content => content.classList.add('hidden'))
       document.getElementById(this.getAttribute('data-tab')).classList.remove('hidden')
+      
+      // При переключении на вкладку инвентаря загружаем данные
+      if (this.getAttribute('data-tab') === 'inventory-tab') {
+        loadInventory()
+      }
     })
   })
   
@@ -153,13 +427,11 @@ function setupEventListeners() {
     if (caseItem) {
       const caseId = caseItem.dataset.caseId
       if (caseId) {
-        // Проверяем, существует ли элемент перед обращением к нему
         const profileTab = document.querySelector('.nav-item[data-tab="profile-tab"]')
         if (profileTab) {
           profileTab.classList.remove('active')
         }
         
-        // Используем относительный путь
         window.location.href = `case.html?id=${caseId}`
       }
     }
@@ -183,47 +455,9 @@ function setupEventListeners() {
       }
     })
   })
-}
-
-// Функция пополнения баланса
-async function depositBalance(amount) {
-  try {
-    // Получаем текущий баланс
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('balance')
-      .eq('tg_id', tg.initDataUnsafe.user.id)
-      .single()
-    
-    if (userError) throw userError
-    
-    // Обновляем баланс
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({ balance: user.balance + amount })
-      .eq('tg_id', tg.initDataUnsafe.user.id)
-    
-    if (updateError) throw updateError
-    
-    // Записываем транзакцию
-    await supabase
-      .from('transactions')
-      .insert({
-        user_id: tg.initDataUnsafe.user.id,
-        amount: amount,
-        type: 'deposit',
-        description: `Пополнение баланса на ${amount} монет`
-      })
-    
-    // Обновляем UI
-    userBalance.textContent = user.balance + amount
-    statBalance.textContent = user.balance + amount
-    
-    tg.showAlert(`Баланс успешно пополнен на ${amount} монет`)
-  } catch (error) {
-    console.error('Ошибка пополнения баланса:', error)
-    tg.showAlert('Произошла ошибка при пополнении баланса')
-  }
+  
+  // Кнопка "Продать всё"
+  document.getElementById('sell-all-btn')?.addEventListener('click', sellAllItems)
 }
 
 // Инициализация при загрузке

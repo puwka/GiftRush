@@ -22,18 +22,10 @@ const possiblePrizes = document.getElementById('possible-prizes')
 const demoModeToggle = document.getElementById('demo-mode')
 const userBalance = document.getElementById('user-balance')
 const totalPriceElement = document.getElementById('total-price')
-const caseImageContainer = document.getElementById('case-image-container')
-const rouletteContainer = document.getElementById('roulette-container')
+const totalPriceBtnElement = document.getElementById('total-price-btn')
+const caseImageContainer = document.getElementById('case-image-container');
+const rouletteContainer = document.getElementById('roulette-container');
 
-// Элементы модального окна выигрыша
-const winModal = document.getElementById('win-modal')
-const closeWinModal = document.getElementById('close-win-modal')
-const sellItemBtn = document.getElementById('sell-item-btn')
-const keepItemBtn = document.getElementById('keep-item-btn')
-const wonItemElement = document.getElementById('won-item')
-const wonItemName = document.getElementById('won-item-name')
-const wonItemValue = document.getElementById('won-item-value')
-const wonItemImage = document.querySelector('.won-item-image')
 
 // Переменные состояния
 let currentCase = null
@@ -41,44 +33,45 @@ let caseItems = []
 let isSpinning = false
 let currentBalance = 0
 let quantity = 1
-let wonItems = []
-let animationId = null
-let currentPosition = 0
-let targetPosition = 0
-let spinStartTime = 0
-let spinDuration = 6000 // 6 секунд анимации
-let isFirstSpin = true
+let wonItems = [] // Добавьте эту строку
+let animationId = null;
+let currentPosition = 0;
+let targetPosition = 0;
+let spinStartTime = 0;
+let spinDuration = 6000; // 6 секунд анимации
+let isFirstSpin = true;
 
 // Основная функция инициализации
 async function initApp() {
   // Проверяем существование элементов перед работой с ними
+  // На этот:
   if (caseImageContainer) {
-    caseImageContainer.classList.remove('hidden')
+    caseImageContainer.classList.remove('hidden');
   }
   
   if (rouletteContainer) {
-    rouletteContainer.classList.remove('visible')
-    rouletteContainer.classList.add('hidden')
+    rouletteContainer.classList.remove('visible');
+    rouletteContainer.classList.add('hidden');
   }
 
   // В функции initApp:
   if (demoModeToggle) {
     // Установка начального состояния
     if (!tg.initDataUnsafe?.user) {
-      demoModeToggle.checked = true
-      if (userBalance) userBalance.textContent = "∞"
+        demoModeToggle.checked = true;
+        if (userBalance) userBalance.textContent = "∞";
     }
     
     // Обработчик изменения
     demoModeToggle.addEventListener('change', function() {
-      if (this.checked) {
-        if (userBalance) userBalance.textContent = "∞"
-        tg.showAlert("Демо-режим активирован")
-      } else {
-        if (userBalance) userBalance.textContent = currentBalance
-        tg.showAlert("Демо-режим деактивирован")
-      }
-    })
+        if (this.checked) {
+            if (userBalance) userBalance.textContent = "∞";
+            tg.showAlert("Демо-режим активирован");
+        } else {
+            if (userBalance) userBalance.textContent = currentBalance;
+            tg.showAlert("Демо-режим деактивирован");
+        }
+    });
   }
 
   // Проверяем, есть ли пользователь Telegram
@@ -103,7 +96,7 @@ async function initApp() {
 
 // Загрузка данных пользователя
 async function loadUserData() {
-  if (!tg.initDataUnsafe?.user) return
+  if (!tg.initDataUnsafe?.user) return;
 
   const { data: user, error } = await supabase
     .from('users')
@@ -176,6 +169,7 @@ async function loadCaseItems() {
 }
 
 // Загрузка возможных призов (в 2 ряда)
+// Загрузка возможных призов с названием и ценой
 async function loadPossiblePrizes() {
   if (!caseItems.length) await loadCaseItems()
   
@@ -197,101 +191,40 @@ async function loadPossiblePrizes() {
   possiblePrizes.innerHTML = html
 }
 
+// Демо-режим
+demoModeToggle?.addEventListener('change', function() {
+  if (this.checked) {
+    userBalance.textContent = "∞"
+  } else {
+    userBalance.textContent = currentBalance
+  }
+})
+
+// В функции initApp добавьте:
+if (demoModeToggle?.checked) {
+  userBalance.textContent = "∞"
+}
+
 // Настройка обработчиков событий
 function setupEventListeners() {
   // Управление количеством
   document.getElementById('increase-qty')?.addEventListener('click', () => {
     if (quantity < 3) {
-      quantity++
-      updateQuantity()
+        quantity++;
+        updateQuantity();
     }
-  })
+  });
 
   document.getElementById('decrease-qty')?.addEventListener('click', () => {
-    if (quantity > 1) {
-      quantity--
-      updateQuantity()
-    }
-  })
+      if (quantity > 1) {
+          quantity--;
+          updateQuantity();
+      }
+  });
 
   if (openCaseBtn) {
     openCaseBtn.addEventListener('click', () => openCases(quantity))
   }
-
-  // Обработчики для модального окна выигрыша
-  closeWinModal?.addEventListener('click', hideWinModal)
-  winModal?.addEventListener('click', (e) => {
-    if (e.target === winModal || e.target.classList.contains('win-modal-overlay')) {
-      hideWinModal()
-    }
-  })
-
-  sellItemBtn?.addEventListener('click', async function() {
-    if (!wonItems.length) return
-    
-    const item = wonItems[0]
-    const sellValue = Math.floor(item.value * 0.8) // 80% от стоимости
-    
-    try {
-      if (!demoModeToggle?.checked) {
-        // Обновляем баланс пользователя
-        const { error: updateError } = await supabase
-          .from('users')
-          .update({ balance: currentBalance + sellValue })
-          .eq('tg_id', tg.initDataUnsafe.user.id)
-        
-        if (updateError) throw updateError
-        
-        // Записываем транзакцию
-        await supabase
-          .from('transactions')
-          .insert({
-            user_id: tg.initDataUnsafe.user.id,
-            amount: sellValue,
-            type: 'item_sell',
-            description: `Продажа "${item.name}" за ${sellValue} монет`
-          })
-        
-        // Обновляем UI
-        currentBalance += sellValue
-        userBalance.textContent = currentBalance
-      }
-      
-      tg.showAlert(`Предмет продан за ${sellValue} монет`)
-      hideWinModal()
-      wonItems = []
-      
-    } catch (error) {
-      console.error('Ошибка при продаже предмета:', error)
-      tg.showAlert('Произошла ошибка при продаже предмета')
-    }
-  })
-
-  keepItemBtn?.addEventListener('click', async function() {
-    if (!wonItems.length) return
-    
-    try {
-      if (!demoModeToggle?.checked) {
-        // Сохраняем предмет в инвентарь пользователя
-        await supabase
-          .from('user_items')
-          .insert({
-            user_id: tg.initDataUnsafe.user.id,
-            item_id: wonItems[0].id,
-            case_id: caseId,
-            obtained_at: new Date().toISOString()
-          })
-      }
-      
-      tg.showAlert(`Предмет "${wonItems[0].name}" добавлен в ваш инвентарь`)
-      hideWinModal()
-      wonItems = []
-      
-    } catch (error) {
-      console.error('Ошибка при сохранении предмета:', error)
-      tg.showAlert('Произошла ошибка при сохранении предмета')
-    }
-  })
 }
 
 // Обновление количества
@@ -302,184 +235,142 @@ function updateQuantity() {
 
 function updateTotalPrice() {
   if (currentCase) {
-    const total = currentCase.price * quantity
-    document.getElementById('total-price').textContent = total
-    
-    // Обновляем текст кнопки в зависимости от количества
-    const openText = document.getElementById('open-text')
-    if (quantity > 1) {
-      openText.textContent = `ОТКРЫТЬ ${quantity} КЕЙСА`
-    } else {
-      openText.textContent = 'ОТКРЫТЬ КЕЙС'
-    }
+      const total = currentCase.price * quantity;
+      // Обновляем оба элемента с ценой
+      document.getElementById('total-price').textContent = total;
+      
+      // Обновляем текст кнопки в зависимости от количества
+      const openText = document.getElementById('open-text');
+      if (quantity > 1) {
+          openText.textContent = `ОТКРЫТЬ ${quantity} КЕЙСА`;
+      } else {
+          openText.textContent = 'ОТКРЫТЬ КЕЙС';
+      }
   }
 }
 
 async function openCases(count) {
-  if (isSpinning) return
+  if (isSpinning) return;
   
-  console.log('Начало открытия кейса')
+  console.log('Начало открытия кейса'); // Логирование
   
-  const demoMode = demoModeToggle?.checked
-  const price = currentCase.price * count
+  const demoMode = demoModeToggle?.checked;
+  const price = currentCase.price * count;
   
   if (!demoMode && currentBalance < price) {
-    tg.showAlert('Недостаточно средств на балансе')
-    return
+      tg.showAlert('Недостаточно средств на балансе');
+      return;
   }
   
-  isSpinning = true
-  disableButtons()
-  wonItems = []
+  isSpinning = true;
+  disableButtons();
+  wonItems = [];
   
   // 1. Сначала скрываем кейс
   if (caseImageContainer) {
-    caseImageContainer.classList.add('hidden')
-    console.log('Кейс скрыт')
+      caseImageContainer.classList.add('hidden');
+      console.log('Кейс скрыт');
   }
   
   // 2. Показываем рулетку
   if (rouletteContainer) {
-    rouletteContainer.classList.remove('hidden')
-    rouletteContainer.classList.add('visible')
-    console.log('Рулетка показана')
-    
-    // Принудительное обновление DOM
-    void rouletteContainer.offsetWidth
+      rouletteContainer.classList.remove('hidden');
+      rouletteContainer.classList.add('visible');
+      console.log('Рулетка показана');
+      
+      // Принудительное обновление DOM
+      void rouletteContainer.offsetWidth;
   }
   
   try {
-    console.log('Запуск анимации рулетки')
-    await spinRoulette()
-    
-    if (!demoMode) {
-      currentBalance -= price
-      if (userBalance) userBalance.textContent = currentBalance
-      await saveResults()
-    }
-    
-    console.log('Анимация завершена')
+      console.log('Запуск анимации рулетки');
+      await spinRoulette();
+      
+      if (!demoMode) {
+          currentBalance -= price;
+          if (userBalance) userBalance.textContent = currentBalance;
+          await saveResults();
+      }
+      
+      console.log('Анимация завершена');
   } catch (error) {
-    console.error('Ошибка:', error)
-    tg.showAlert('Произошла ошибка')
+      console.error('Ошибка:', error);
+      tg.showAlert('Произошла ошибка');
   } finally {
-    // 3. После завершения возвращаем исходное состояние
-    setTimeout(() => {
-      if (rouletteContainer) {
-        rouletteContainer.classList.remove('visible')
-        rouletteContainer.classList.add('hidden')
-        console.log('Рулетка скрыта')
-      }
-      
-      if (caseImageContainer) {
-        caseImageContainer.classList.remove('hidden')
-        console.log('Кейс показан')
-      }
-      
-      isSpinning = false
-      enableButtons()
-    }, 500)
+      // 3. После завершения возвращаем исходное состояние
+      setTimeout(() => {
+          if (rouletteContainer) {
+              rouletteContainer.classList.remove('visible');
+              rouletteContainer.classList.add('hidden');
+              console.log('Рулетка скрыта');
+          }
+          
+          if (caseImageContainer) {
+              caseImageContainer.classList.remove('hidden');
+              console.log('Кейс показан');
+          }
+          
+          isSpinning = false;
+          enableButtons();
+      }, 500);
   }
 }
-
-// ... (предыдущий код остается без изменений до функции spinRoulette)
 
 function spinRoulette() {
   return new Promise(resolve => {
-    console.log('Запуск spinRoulette')
-    
-    const itemWidth = 150
-    const itemsCount = caseItems.length
-    const targetIndex = Math.floor(Math.random() * itemsCount)
-    const targetItem = caseItems[targetIndex] // Сохраняем выигрышный предмет
-    const targetPosition = (itemsCount * 5 + targetIndex) * itemWidth
-    
-    // Создаем элементы рулетки
-    const extendedItems = Array(10).fill().flatMap(() => caseItems)
-    rouletteItems.innerHTML = extendedItems.map(item => `
-      <div class="roulette-item" data-item-id="${item.id}">
-        <img src="${item.image_url || 'https://via.placeholder.com/150'}" alt="${item.name}">
-      </div>
-    `).join('')
-
-    let startTime = null
-    
-    function animate(timestamp) {
-      if (!startTime) startTime = timestamp
-      const elapsed = timestamp - startTime
-      const progress = Math.min(elapsed / 6000, 1)
+      console.log('Запуск spinRoulette');
       
-      // Анимация движения
-      let distance
-      if (elapsed < 4000) {
-        distance = (targetPosition * 0.8) * (elapsed / 4000)
-      } else {
-        const slowProgress = (elapsed - 4000) / 2000
-        distance = (targetPosition * 0.8) + (targetPosition * 0.2) * (1 - Math.pow(1 - slowProgress, 4))
-      }
+      const itemWidth = 150;
+      const itemsCount = caseItems.length;
+      const targetIndex = Math.floor(Math.random() * itemsCount);
+      const targetPosition = (itemsCount * 5 + targetIndex) * itemWidth;
       
-      rouletteItems.style.transform = `translateX(-${distance}px)`
-      
-      if (progress < 1) {
-        requestAnimationFrame(animate)
-      } else {
-        // Завершение анимации
-        setTimeout(() => {
-          rouletteItems.innerHTML = caseItems.map(item => `
-            <div class="roulette-item" data-item-id="${item.id}">
+      // Создаем элементы рулетки
+      const extendedItems = Array(10).fill().flatMap(() => caseItems);
+      rouletteItems.innerHTML = extendedItems.map(item => `
+          <div class="roulette-item" data-item-id="${item.id}">
               <img src="${item.image_url || 'https://via.placeholder.com/150'}" alt="${item.name}">
-            </div>
-          `).join('')
+          </div>
+      `).join('');
+
+      let startTime = null;
+      
+      function animate(timestamp) {
+          if (!startTime) startTime = timestamp;
+          const elapsed = timestamp - startTime;
+          const progress = Math.min(elapsed / 6000, 1);
           
-          rouletteItems.style.transform = `translateX(-${targetIndex * itemWidth}px)`
+          // Анимация движения
+          let distance;
+          if (elapsed < 4000) {
+              distance = (targetPosition * 0.8) * (elapsed / 4000);
+          } else {
+              const slowProgress = (elapsed - 4000) / 2000;
+              distance = (targetPosition * 0.8) + (targetPosition * 0.2) * (1 - Math.pow(1 - slowProgress, 4));
+          }
           
-          // Сохраняем выигранный предмет
-          wonItems = [targetItem] // Используем сохраненный targetItem
+          rouletteItems.style.transform = `translateX(-${distance}px)`;
           
-          // Показываем модальное окно с выигрышем
-          setTimeout(() => {
-            showWinModal(targetItem) // Используем сохраненный targetItem
-          }, 500)
-          
-          resolve()
-        }, 500)
+          if (progress < 1) {
+              requestAnimationFrame(animate);
+          } else {
+              // Завершение анимации
+              setTimeout(() => {
+                  rouletteItems.innerHTML = caseItems.map(item => `
+                      <div class="roulette-item" data-item-id="${item.id}">
+                          <img src="${item.image_url || 'https://via.placeholder.com/150'}" alt="${item.name}">
+                      </div>
+                  `).join('');
+                  
+                  rouletteItems.style.transform = `translateX(-${targetIndex * itemWidth}px)`;
+                  wonItems.push(caseItems[targetIndex]);
+                  resolve();
+              }, 500);
+          }
       }
-    }
-    
-    requestAnimationFrame(animate)
-  })
-}
-
-// ... (остальной код остается без изменений)
-
-// Показать модальное окно выигрыша
-function showWinModal(item) {
-  // Устанавливаем данные выигрыша из переданного предмета
-  wonItemName.textContent = item.name
-  wonItemValue.innerHTML = `${item.value} <i class="fas fa-coins"></i>`
-  wonItemImage.src = item.image_url || 'https://via.placeholder.com/150'
-  wonItemImage.alt = item.name
-  
-  // Устанавливаем класс редкости
-  wonItemElement.className = 'won-item'
-  wonItemElement.classList.add(`rarity-${item.rarity || 'common'}`)
-  
-  // Показываем модальное окно
-  winModal.classList.remove('hidden')
-  winModal.classList.add('visible')
-  
-  // Обновляем баланс в демо-режиме
-  if (demoModeToggle?.checked) {
-    userBalance.textContent = "∞"
-  }
-}
-
-// Скрыть модальное окно выигрыша
-function hideWinModal() {
-  winModal.classList.remove('visible')
-  setTimeout(() => {
-    winModal.classList.add('hidden')
-  }, 300)
+      
+      requestAnimationFrame(animate);
+  });
 }
 
 async function saveResults() {

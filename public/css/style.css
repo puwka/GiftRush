@@ -858,3 +858,211 @@ html {
     height: 100px;
   }
 }
+
+/* Добавляем в конец файла style.css */
+
+/* Стили для кнопки пополнения баланса */
+.balance-add-btn {
+	background: linear-gradient(135deg, #2ecc71, #27ae60);
+	color: white;
+	border: none;
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-left: 10px;
+	cursor: pointer;
+	transition: all 0.3s;
+  }
+  
+  .balance-add-btn:hover {
+	transform: scale(1.1);
+	box-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
+  }
+  
+  /* Стили для модального окна пополнения */
+  .deposit-modal {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.8);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+	opacity: 0;
+	visibility: hidden;
+	transition: all 0.3s;
+  }
+  
+  .deposit-modal.active {
+	opacity: 1;
+	visibility: visible;
+  }
+  
+  .deposit-modal-content {
+	background: #252525;
+	border-radius: 12px;
+	padding: 20px;
+	width: 90%;
+	max-width: 400px;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+	transform: translateY(20px);
+	transition: all 0.3s;
+  }
+  
+  .deposit-modal.active .deposit-modal-content {
+	transform: translateY(0);
+  }
+  
+  .deposit-modal-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
+	padding-bottom: 10px;
+	border-bottom: 1px solid #333;
+  }
+  
+  .deposit-modal-title {
+	color: #f5f5f5;
+	font-size: 18px;
+	font-weight: bold;
+  }
+  
+  .deposit-modal-close {
+	background: none;
+	border: none;
+	color: #aaa;
+	font-size: 20px;
+	cursor: pointer;
+  }
+  
+  .deposit-methods {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-bottom: 20px;
+  }
+  
+  .deposit-method {
+	background: #333;
+	border-radius: 8px;
+	padding: 15px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	cursor: pointer;
+	transition: all 0.3s;
+	border: 1px solid transparent;
+  }
+  
+  .deposit-method:hover {
+	border-color: #8e44ad;
+  }
+  
+  .deposit-method.active {
+	border-color: #8e44ad;
+	background: rgba(142, 68, 173, 0.2);
+  }
+  
+  .deposit-method-icon {
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	background: #8e44ad;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 18px;
+  }
+  
+  .deposit-method-info {
+	flex: 1;
+  }
+  
+  .deposit-method-name {
+	color: #f5f5f5;
+	font-weight: bold;
+	margin-bottom: 3px;
+  }
+  
+  .deposit-method-rate {
+	color: #aaa;
+	font-size: 12px;
+  }
+  
+  .deposit-amount {
+	margin-bottom: 20px;
+  }
+  
+  .deposit-amount-label {
+	color: #f5f5f5;
+	margin-bottom: 8px;
+	display: block;
+  }
+  
+  .deposit-amount-input {
+	width: 100%;
+	padding: 12px 15px;
+	border-radius: 8px;
+	background: #333;
+	border: 1px solid #444;
+	color: #f5f5f5;
+	font-size: 16px;
+  }
+  
+  .deposit-summary {
+	background: #333;
+	border-radius: 8px;
+	padding: 15px;
+	margin-bottom: 20px;
+  }
+  
+  .deposit-summary-row {
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: 8px;
+  }
+  
+  .deposit-summary-label {
+	color: #aaa;
+  }
+  
+  .deposit-summary-value {
+	color: #f5f5f5;
+	font-weight: bold;
+  }
+  
+  .deposit-summary-total {
+	color: #f1c40f;
+	font-size: 18px;
+  }
+  
+  .deposit-submit-btn {
+	width: 100%;
+	padding: 14px;
+	border-radius: 8px;
+	background: linear-gradient(135deg, #2ecc71, #27ae60);
+	color: white;
+	font-weight: bold;
+	border: none;
+	cursor: pointer;
+	transition: all 0.3s;
+  }
+  
+  .deposit-submit-btn:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+  }
+  
+  .deposit-submit-btn:disabled {
+	background: #555;
+	cursor: not-allowed;
+	transform: none;
+	box-shadow: none;
+  }

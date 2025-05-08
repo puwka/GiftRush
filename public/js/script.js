@@ -40,6 +40,10 @@ async function initApp() {
     }
   } else {
     console.log('Пользователь Telegram не авторизован')
+    // В демо-режиме добавляем обработчик для кнопки пополнения
+    document.getElementById('deposit-btn')?.addEventListener('click', () => {
+      document.getElementById('deposit-modal').classList.add('active')
+    })
   }
 }
 
@@ -370,30 +374,91 @@ function setupEventListeners() {
     }
   })
   
-  // Кнопка пополнения баланса
-  document.querySelector('.action-btn.purple')?.addEventListener('click', function() {
-    tg.showPopup({
-      title: 'Пополнение баланса',
-      message: 'Выберите сумму для пополнения:',
-      buttons: [
-        { id: '100', type: 'default', text: '100 монет' },
-        { id: '500', type: 'default', text: '500 монет' },
-        { id: '1000', type: 'default', text: '1000 монет' },
-        { id: 'cancel', type: 'cancel' }
-      ]
-    }, function(btnId) {
-      if (btnId !== 'cancel') {
-        const amount = parseInt(btnId)
-        depositBalance(amount)
-      }
+  // Обработчики для пополнения баланса
+  document.getElementById('deposit-btn')?.addEventListener('click', () => {
+    document.getElementById('deposit-modal').classList.add('active')
+  })
+  
+  document.getElementById('deposit-modal-close')?.addEventListener('click', () => {
+    document.getElementById('deposit-modal').classList.remove('active')
+  })
+  
+  // Выбор метода пополнения
+  document.querySelectorAll('.deposit-method').forEach(method => {
+    method.addEventListener('click', () => {
+      document.querySelectorAll('.deposit-method').forEach(m => m.classList.remove('active'))
+      method.classList.add('active')
+      updateDepositCalculation()
     })
+  })
+  
+  // Ввод суммы пополнения
+  document.getElementById('deposit-amount')?.addEventListener('input', () => {
+    updateDepositCalculation()
+  })
+  
+  // Кнопка пополнения
+  document.getElementById('deposit-submit')?.addEventListener('click', async () => {
+    await processDeposit()
   })
 }
 
-// Функция пополнения баланса
-async function depositBalance(amount) {
+// Обновление расчета суммы пополнения
+function updateDepositCalculation() {
+  const method = document.querySelector('.deposit-method.active').dataset.method
+  const amountInput = document.getElementById('deposit-amount')
+  const amount = parseInt(amountInput.value) || 0
+  const submitBtn = document.getElementById('deposit-submit')
+  
+  let rateText = ''
+  let bonus = 0
+  let total = 0
+  
+  if (method === 'stars') {
+    rateText = '1 звезда = 1 монета'
+    total = amount
+  } else if (method === 'ton') {
+    rateText = '1 TON = 200 монет (+20%)'
+    bonus = Math.floor(amount * 40) // 20% от 200 = 40
+    total = amount * 200 + bonus
+  }
+  
+  document.getElementById('deposit-rate').textContent = rateText
+  document.getElementById('deposit-bonus').textContent = `${bonus} монет`
+  document.getElementById('deposit-total').textContent = `${total} монет`
+  
+  submitBtn.disabled = amount <= 0
+}
+
+// Обработка пополнения баланса
+async function processDeposit() {
+  const method = document.querySelector('.deposit-method.active').dataset.method
+  const amount = parseInt(document.getElementById('deposit-amount').value)
+  const tg = window.Telegram.WebApp
+  
+  if (!amount || amount <= 0) {
+    tg.showAlert('Введите корректную сумму')
+    return
+  }
+  
   try {
-    // Получаем текущий баланс
+    // В демо-режиме просто увеличиваем баланс
+    if (!tg.initDataUnsafe?.user) {
+      const currentBalance = parseInt(document.getElementById('user-balance').textContent) || 0
+      let total = method === 'stars' ? amount : amount * 240
+      document.getElementById('user-balance').textContent = currentBalance + total
+      tg.showAlert(`Баланс пополнен на ${total} монет (демо-режим)`)
+      document.getElementById('deposit-modal').classList.remove('active')
+      document.getElementById('deposit-amount').value = ''
+      document.getElementById('deposit-submit').disabled = true
+      return
+    }
+    
+    // В реальном режиме сохраняем в базу данных
+    let total = method === 'stars' ? amount : amount * 240
+    let bonus = method === 'stars' ? 0 : amount * 40
+    
+    // Обновляем баланс в базе данных
     const { data: user, error: userError } = await supabase
       .from('users')
       .select('balance')
@@ -402,10 +467,9 @@ async function depositBalance(amount) {
     
     if (userError) throw userError
     
-    // Обновляем баланс
     const { error: updateError } = await supabase
       .from('users')
-      .update({ balance: user.balance + amount })
+      .update({ balance: user.balance + total })
       .eq('tg_id', tg.initDataUnsafe.user.id)
     
     if (updateError) throw updateError
@@ -415,16 +479,20 @@ async function depositBalance(amount) {
       .from('transactions')
       .insert({
         user_id: tg.initDataUnsafe.user.id,
-        amount: amount,
+        amount: total,
         type: 'deposit',
-        description: `Пополнение баланса на ${amount} монет`
+        description: `Пополнение баланса через ${method === 'stars' ? 'Telegram Stars' : 'TON'} (+${bonus} бонус)`
       })
     
     // Обновляем UI
-    userBalance.textContent = user.balance + amount
-    statBalance.textContent = user.balance + amount
+    userBalance.textContent = user.balance + total
+    statBalance.textContent = user.balance + total
     
-    tg.showAlert(`Баланс успешно пополнен на ${amount} монет`)
+    tg.showAlert(`Баланс успешно пополнен на ${total} монет`)
+    document.getElementById('deposit-modal').classList.remove('active')
+    document.getElementById('deposit-amount').value = ''
+    document.getElementById('deposit-submit').disabled = true
+    
   } catch (error) {
     console.error('Ошибка пополнения баланса:', error)
     tg.showAlert('Произошла ошибка при пополнении баланса')

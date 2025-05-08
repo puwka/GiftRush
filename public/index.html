@@ -13,16 +13,19 @@
         <header class="header">
             <div class="balance-card">
                 <div class="balance-content">
-                    <div class="coin-pulse">
-                        <i class="fas fa-coins"></i>
-                    </div>
-                    <div class="balance-info">
-                        <span class="balance-label">Баланс</span>
-                        <span class="balance-value" id="user-balance">0</span>
-                    </div>
+                  <div class="coin-pulse">
+                    <i class="fas fa-coins"></i>
+                  </div>
+                  <div class="balance-info">
+                    <span class="balance-label">Баланс</span>
+                    <span class="balance-value" id="user-balance">0</span>
+                  </div>
+                  <button class="balance-add-btn" id="deposit-btn">
+                    <i class="fas fa-plus"></i>
+                  </button>
                 </div>
                 <div class="balance-wave"></div>
-            </div>
+              </div>
             
             <div class="logo-container">
                 <div class="logo-shine"></div>
@@ -318,6 +321,60 @@
                 <span>Профиль</span>
             </a>
         </nav>
+    </div>
+
+    <!-- Добавляем в конец body перед скриптами -->
+    <div class="deposit-modal" id="deposit-modal">
+        <div class="deposit-modal-content">
+        <div class="deposit-modal-header">
+            <h3 class="deposit-modal-title">Пополнение баланса</h3>
+            <button class="deposit-modal-close" id="deposit-modal-close">&times;</button>
+        </div>
+        
+        <div class="deposit-methods">
+            <div class="deposit-method active" data-method="stars">
+            <div class="deposit-method-icon">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="deposit-method-info">
+                <div class="deposit-method-name">Telegram Stars</div>
+                <div class="deposit-method-rate">1 звезда = 1 монета</div>
+            </div>
+            </div>
+            
+            <div class="deposit-method" data-method="ton">
+            <div class="deposit-method-icon">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <div class="deposit-method-info">
+                <div class="deposit-method-name">Toncoin (TON)</div>
+                <div class="deposit-method-rate">1 TON = 240 монет (+20%)</div>
+            </div>
+            </div>
+        </div>
+        
+        <div class="deposit-amount">
+            <label class="deposit-amount-label">Сумма пополнения:</label>
+            <input type="number" class="deposit-amount-input" id="deposit-amount" placeholder="Введите сумму" min="1">
+        </div>
+        
+        <div class="deposit-summary">
+            <div class="deposit-summary-row">
+            <span class="deposit-summary-label">Курс:</span>
+            <span class="deposit-summary-value" id="deposit-rate">1 звезда = 1 монета</span>
+            </div>
+            <div class="deposit-summary-row">
+            <span class="deposit-summary-label">Бонус:</span>
+            <span class="deposit-summary-value" id="deposit-bonus">0 монет</span>
+            </div>
+            <div class="deposit-summary-row">
+            <span class="deposit-summary-label">Итого на баланс:</span>
+            <span class="deposit-summary-value deposit-summary-total" id="deposit-total">0 монет</span>
+            </div>
+        </div>
+        
+        <button class="deposit-submit-btn" id="deposit-submit" disabled>Пополнить</button>
+        </div>
     </div>
 
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>

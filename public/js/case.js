@@ -71,6 +71,11 @@ async function initApp() {
         if (userBalance) userBalance.textContent = currentBalance
       }
     })
+
+    // Добавляем обработчик для кнопки пополнения в демо-режиме
+    document.getElementById('deposit-btn')?.addEventListener('click', () => {
+      document.getElementById('deposit-modal').classList.add('active')
+    })
   }
 
   if (tg.initDataUnsafe?.user) {
@@ -113,6 +118,11 @@ async function loadUserData() {
   } else {
     profilePic.innerHTML = `<i class="fas fa-user"></i>`
   }
+  
+  // Добавляем обработчик для кнопки пополнения
+  document.getElementById('deposit-btn')?.addEventListener('click', () => {
+    document.getElementById('deposit-modal').classList.add('active')
+  })
 }
 
 // Загрузка данных кейса

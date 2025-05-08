@@ -194,7 +194,6 @@ function setupInventoryEventListeners() {
   document.querySelectorAll('.withdraw-btn').forEach(btn => {
     btn.addEventListener('click', function() {
       const itemId = this.dataset.itemId
-      tg.showAlert('Функция вывода предмета будет реализована в будущем')
     })
   })
 }
@@ -240,10 +239,8 @@ async function sellInventoryItem(itemId, itemValue) {
     await loadUserStats(tg.initDataUnsafe.user.id)
     await loadUserInventory(tg.initDataUnsafe.user.id)
     
-    tg.showAlert(`Предмет успешно продан за ${itemValue} монет`)
   } catch (error) {
     console.error('Ошибка продажи предмета:', error)
-    tg.showAlert('Произошла ошибка при продаже предмета')
   }
 }
 
@@ -259,7 +256,6 @@ async function sellAllInventoryItems() {
     if (inventoryError) throw inventoryError
     
     if (inventory.length === 0) {
-      tg.showAlert('В инвентаре нет предметов для продажи')
       return
     }
     
@@ -305,10 +301,8 @@ async function sellAllInventoryItems() {
     await loadUserStats(tg.initDataUnsafe.user.id)
     await loadUserInventory(tg.initDataUnsafe.user.id)
     
-    tg.showAlert(`Все предметы проданы за ${totalValue} монет`)
   } catch (error) {
     console.error('Ошибка продажи всех предметов:', error)
-    tg.showAlert('Произошла ошибка при продаже предметов')
   }
 }
 
@@ -447,7 +441,6 @@ async function processDeposit() {
       const currentBalance = parseInt(document.getElementById('user-balance').textContent) || 0
       let total = method === 'stars' ? amount : amount * 240
       document.getElementById('user-balance').textContent = currentBalance + total
-      tg.showAlert(`Баланс пополнен на ${total} монет (демо-режим)`)
       document.getElementById('deposit-modal').classList.remove('active')
       document.getElementById('deposit-amount').value = ''
       document.getElementById('deposit-submit').disabled = true
@@ -488,14 +481,12 @@ async function processDeposit() {
     userBalance.textContent = user.balance + total
     statBalance.textContent = user.balance + total
     
-    tg.showAlert(`Баланс успешно пополнен на ${total} монет`)
     document.getElementById('deposit-modal').classList.remove('active')
     document.getElementById('deposit-amount').value = ''
     document.getElementById('deposit-submit').disabled = true
     
   } catch (error) {
     console.error('Ошибка пополнения баланса:', error)
-    tg.showAlert('Произошла ошибка при пополнении баланса')
   }
 }
 

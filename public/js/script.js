@@ -20,6 +20,9 @@ const statCases = document.querySelector('.stat-item:nth-child(2) .stat-value')
 const statPrizes = document.querySelector('.stat-item:nth-child(3) .stat-value')
 const casesContainer = document.getElementById('cases-container')
 const inventoryItemsContainer = document.getElementById('inventory-items')
+// Добавьте в начало файла
+const inventoryTab = document.getElementById('inventory-tab');
+const inventoryGrid = document.getElementById('inventory-items');
 
 // Переменные состояния
 let currentBalance = 0
@@ -128,9 +131,14 @@ function updateUI(user) {
 
 // Загрузка инвентаря
 async function loadInventory() {
-  if (!tg.initDataUnsafe?.user) return;
-  
+  if (!tg.initDataUnsafe?.user) {
+    console.log('Пользователь не авторизован');
+    return;
+  }
+
   try {
+    inventoryGrid.innerHTML = '<div class="loading">Загрузка...</div>';
+    
     const { data: items, error } = await supabase
       .from('user_items')
       .select(`
@@ -147,68 +155,78 @@ async function loadInventory() {
       `)
       .eq('user_id', tg.initDataUnsafe.user.id)
       .neq('quantity', 0)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
     
-    if (error) throw error
-    
-    renderInventory(items)
+    if (!items || items.length === 0) {
+      inventoryGrid.innerHTML = `
+        <div class="empty-inventory">
+          <i class="fas fa-box-open"></i>
+          <p>Ваш инвентарь пуст</p>
+        </div>
+      `;
+      return;
+    }
+
+    renderInventory(items);
   } catch (error) {
-    console.error('Ошибка загрузки инвентаря:', error)
-    tg.showAlert('Произошла ошибка при загрузке инвентаря')
+    console.error('Ошибка загрузки инвентаря:', error);
+    inventoryGrid.innerHTML = `
+      <div class="error-message">
+        Ошибка загрузки инвентаря. Попробуйте позже.
+      </div>
+    `;
   }
 }
 
-// Отображение инвентаря
+// Обновите функцию renderInventory
 function renderInventory(items) {
-  if (!items || !items.length) {
-    inventoryItemsContainer.innerHTML = '<p class="empty-inventory">Ваш инвентарь пуст</p>'
-    return
-  }
-  
-  let html = ''
-  items.forEach(item => {
-    html += `
-      <div class="inventory-item rarity-${item.case_items.rarity || 'common'}" data-item-id="${item.id}">
+  inventoryGrid.innerHTML = items.map(item => `
+    <div class="inventory-item rarity-${item.case_items.rarity || 'common'}" 
+         data-item-id="${item.id}">
+      <div class="item-image-container">
         <img src="${item.case_items.image_url || 'https://via.placeholder.com/120'}" 
              alt="${item.case_items.name}" 
-             class="inventory-item-image">
-        <div class="inventory-item-info">
-          <div class="inventory-item-name">${item.case_items.name}</div>
-          <div class="inventory-item-value">
-            ${item.case_items.value} <i class="fas fa-coins"></i>
-          </div>
-          <div class="inventory-item-quantity">x${item.quantity}</div>
-          <div class="inventory-item-actions">
-            <button class="inventory-item-btn sell" data-item-id="${item.id}">
-              Продать
-            </button>
-            ${item.case_items.is_nft ? `
-            <button class="inventory-item-btn withdraw" data-item-id="${item.id}">
-              Вывести
-            </button>
-            ` : ''}
-          </div>
+             class="inventory-item-image"
+             onerror="this.src='https://via.placeholder.com/120'">
+        ${item.quantity > 1 ? `
+          <div class="item-quantity-badge">${item.quantity}</div>
+        ` : ''}
+      </div>
+      <div class="inventory-item-info">
+        <div class="item-name">${item.case_items.name}</div>
+        <div class="item-value">
+          <i class="fas fa-coins"></i> ${item.case_items.value}
+        </div>
+        <div class="item-actions">
+          <button class="btn sell-btn" data-item-id="${item.id}">
+            <i class="fas fa-coins"></i> Продать
+          </button>
+          ${item.case_items.is_nft ? `
+          <button class="btn withdraw-btn" data-item-id="${item.id}">
+            <i class="fas fa-external-link-alt"></i> Вывести
+          </button>
+          ` : ''}
         </div>
       </div>
-    `
-  })
-  
-  inventoryItemsContainer.innerHTML = html
-  
-  // Добавляем обработчики для кнопок продажи
-  document.querySelectorAll('.inventory-item-btn.sell').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const itemId = this.getAttribute('data-item-id')
-      sellItem(itemId)
-    })
-  })
-  
-  // Добавляем обработчики для кнопок вывода NFT
-  document.querySelectorAll('.inventory-item-btn.withdraw').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const itemId = this.getAttribute('data-item-id')
-      withdrawNFT(itemId)
-    })
-  })
+    </div>
+  `).join('');
+
+  // Добавляем обработчики событий
+  document.querySelectorAll('.sell-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const itemId = e.currentTarget.dataset.itemId;
+      await sellItem(itemId);
+    });
+  });
+
+  document.querySelectorAll('.withdraw-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const itemId = e.currentTarget.dataset.itemId;
+      await withdrawNFT(itemId);
+    });
+  });
 }
 
 // Продажа предмета

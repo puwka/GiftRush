@@ -1,0 +1,13 @@
+.ton-connect-button {
+    background: linear-gradient(135deg, #0088cc, #006699);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  .ton-connect-button:hover {
+    opacity: 0.9;
+  }

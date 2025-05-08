@@ -8,13 +8,13 @@
 
 .case-header {
     display: flex;
-    justify-content: center; /* Центрируем по горизонтали */
+    justify-content: center;
     align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
     border-bottom: 1px solid #2d2d2d;
-    text-align: center; /* Центрируем текст */
-    width: 100%; /* Занимает всю доступную ширину */
+    text-align: center;
+    width: 100%;
 }
 
 .case-header h1 {
@@ -23,17 +23,17 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin: 0; /* Убираем стандартные отступы */
-    padding: 0 10px; /* Добавляем небольшие отступы по бокам */
-    max-width: 100%; /* Разрешаем занимать всю доступную ширину */
-    text-align: center; /* Центрируем текст */
+    margin: 0;
+    padding: 0 10px;
+    max-width: 100%;
+    text-align: center;
 }
 
 /* Контейнер цены кейса */
 .case-price-container {
     display: flex;
     justify-content: center;
-    margin: 15px 0;
+    margin: 10px 0;
 }
 
 .case-price {
@@ -49,70 +49,42 @@
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* Рулетка */
-.roulette-center {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 3px;
-    height: 90%;
-    background: rgba(255, 255, 255, 0.15);
-    z-index: 10;
-}
-
-.roulette-center:before,
-.roulette-center:after {
-    content: '';
-    position: absolute;
-    width: 0;
-    height: 0;
-    border-left: 15px solid transparent;
-    border-right: 15px solid transparent;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-/* Перевернутые стрелки */
-.roulette-center:before {
-    border-top: 30px solid #8e44ad; /* Стрелка вниз */
-    top: -20px;
-}
-
-.roulette-center:after {
-    border-bottom: 30px solid #8e44ad; /* Стрелка вверх */
-    bottom: -20px;
-}
-
-/* Обновленный контейнер рулетки */
-.roulette-container {
-    position: relative;
-    overflow: hidden;
-    border-radius: 12px;
-    background: #1e1e1e;
-    border: 1px solid #2d2d2d;
-}
-
-/* Эффект при вращении */
-.roulette-container.spinning .roulette-center {
-    background: rgba(255, 255, 255, 0.3);
-}
-
-.roulette-container.spinning .roulette-center:before,
-.roulette-container.spinning .roulette-center:after {
-    border-top-color: #9b59b6;
-    border-bottom-color: #9b59b6;
-}
-
-.roulette-container {
+/* Основной контейнер игры */
+/* Обновляем game-container */
+.game-container {
     position: relative;
     width: 100%;
     height: 200px;
-    margin: 10px 0 20px;
-    overflow: hidden;
-    border-radius: 12px;
+    margin: 15px 0;
+    z-index: 100;
+}
+
+/* Контейнер для изображения кейса */
+.case-image-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.case-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+/* Стили для рулетки */
+.roulette-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
     background: #1e1e1e;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    overflow: hidden;
 }
 
 .roulette-items {
@@ -137,10 +109,117 @@
     object-fit: contain;
 }
 
+.roulette-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 3px;
+    height: 90%;
+    background: rgba(255, 255, 255, 0.15);
+    z-index: 10;
+}
+
+.roulette-center:before,
+.roulette-center:after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.roulette-center:before {
+    border-top: 30px solid #8e44ad;
+    top: -20px;
+}
+
+.roulette-center:after {
+    border-bottom: 30px solid #8e44ad;
+    bottom: -20px;
+}
+
+.won-item-container {
+    position: relative; /* Меняем с absolute на relative */
+    width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    background: #252525;
+    border-radius: 12px;
+    border: 2px solid #8e44ad;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Увеличиваем размер изображения приза */
+.won-item-image {
+    width: 160px;
+    height: 160px;
+    object-fit: contain;
+    margin: 10px 0;
+}
+
+/* Увеличиваем шрифты */
+.won-item-name {
+    font-size: 22px;
+    color: #f5f5f5;
+    margin: 10px 0;
+}
+
+.won-item-value {
+    font-size: 20px;
+    margin: 10px 0;
+}
+
+/* Кнопки делаем больше */
+.won-item-buttons {
+    display: flex;
+    gap: 15px;
+    width: 100%;
+    margin-top: 15px;
+}
+
+.try-again-btn {
+    flex: 1;
+    background: linear-gradient(135deg, #8e44ad, #9b59b6);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.sell-item-btn {
+    flex: 1;
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.try-again-btn:hover,
+.sell-item-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
 /* Кнопка открытия */
 .open-case-btn {
     width: 100%;
-    padding: 15px;
+    padding: 14px;
     border-radius: 8px;
     background: linear-gradient(135deg, #8e44ad, #9b59b6);
     color: white;
@@ -153,7 +232,7 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
-    margin: 10px 0 20px;
+    margin: 5px 0 10px;
 }
 
 .open-case-btn:hover {
@@ -168,18 +247,63 @@
     box-shadow: none;
 }
 
-.total-price {
-    background: rgba(0, 0, 0, 0.2);
-    padding: 5px 10px;
-    border-radius: 20px;
+/* Управление количеством */
+.case-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px 0;
+    gap: 15px;
+}
+
+.quantity-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #252525;
+    border-radius: 50px;
+    padding: 5px;
+}
+
+.quantity-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #8e44ad;
+    color: white;
+    border: none;
     font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.quantity-btn:hover {
+    background: #9b59b6;
+    transform: scale(1.1);
+}
+
+.quantity-btn:disabled {
+    background: #555;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.quantity-value {
+    font-size: 20px;
+    font-weight: bold;
+    color: white;
+    min-width: 20px;
+    text-align: center;
 }
 
 /* Демо-режим */
 .demo-mode-container {
     display: flex;
     justify-content: center;
-    margin: 15px 0 25px;
+    margin: 5px 0;
 }
 
 .demo-mode-toggle {
@@ -194,7 +318,7 @@
     color: #f5f5f5;
     font-size: 16px;
     font-weight: 500;
-    order: -1; /* Перемещаем текст перед переключателем */
+    order: -1;
     margin-right: 12px;
 }
 
@@ -228,7 +352,6 @@ input:checked + .slider:before {
     transform: translateX(26px);
 }
 
-/* Скрываем стандартный чекбокс */
 #demo-mode {
     opacity: 0;
     width: 0;
@@ -238,15 +361,17 @@ input:checked + .slider:before {
 
 /* Возможные призы */
 .possible-prizes {
-    margin-top: 20px;
+    margin-top: 20px; /* Уменьшаем отступ */
     width: 100%;
+    position: relative;
+    transition: margin-top 0.3s ease; /* Добавляем плавность */
 }
 
 .possible-prizes h2 {
     color: #f5f5f5;
     font-size: 20px;
-    margin-bottom: 15px;
-    padding-bottom: 8px;
+    margin: 0 0 10px;
+    padding-bottom: 5px;
     border-bottom: 2px solid #8e44ad;
 }
 
@@ -315,47 +440,31 @@ input:checked + .slider:before {
 .rarity-legendary { border-color: #f1c40f; }
 .rarity-mythic { border-color: #e74c3c; }
 
-/* Нижнее меню */
-.bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: #1a1a1a;
+/* Состояния элементов */
+.case-image-container:not(.hidden) {
     display: flex;
-    justify-content: space-around;
-    padding: 12px 0;
-    box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.3);
-    z-index: 100;
-    border-top: 1px solid #2d2d2d;
 }
 
-.nav-item {
+.roulette-container:not(.hidden) {
+    display: block;
+}
+
+.won-item-container:not(.hidden) {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-decoration: none;
-    color: #777;
-    font-size: 12px;
-    gap: 5px;
-    transition: all 0.2s;
 }
 
-.nav-item i {
-    font-size: 20px;
+.hidden {
+    display: none !important;
 }
 
-.nav-item.active {
-    color: #8e44ad;
-    transform: translateY(-3px);
-}
-
-.nav-item.active i {
-    text-shadow: 0 0 10px rgba(142, 68, 173, 0.5);
-}
-
-.nav-item:hover {
-    color: #9b59b6;
+/* Анимации */
+.case-image-container,
+.roulette-container,
+.won-item-container,
+.case-controls,
+.open-case-btn,
+.demo-mode-container {
+    transition: all 0.3s ease;
 }
 
 /* Адаптивность */
@@ -376,149 +485,45 @@ input:checked + .slider:before {
     .case-price {
         font-size: 18px;
     }
+    
+    .won-item-image {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .won-item-name {
+        font-size: 18px;
+    }
+    
+    .won-item-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .try-again-btn,
+    .sell-item-btn {
+        width: 100%;
+    }
+    
+    .won-item-container {
+        height: 260px;
+        padding: 10px;
+    }
 }
 
-/* Управление количеством */
-.case-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 20px 0;
-    gap: 15px;
-}
-
-.quantity-selector {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: #252525;
-    border-radius: 50px;
-    padding: 5px;
-}
-
-.quantity-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: #8e44ad;
-    color: white;
-    border: none;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.quantity-btn:hover {
-    background: #9b59b6;
-    transform: scale(1.1);
-}
-
-.quantity-btn:disabled {
-    background: #555;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.quantity-value {
-    font-size: 20px;
-    font-weight: bold;
-    color: white;
-    min-width: 20px;
-    text-align: center;
-}
-
-/* Адаптация кнопки открытия */
-.open-case-btn {
-    /* предыдущие стили */
-    font-size: 16px;
-}
-
-#open-text {
-    font-weight: 800;
-}
-
-.open-case-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-}
-
-.avatar-img-small {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid #8e44ad;
-}
-
-.profile-pic img {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.case-image-container {
-    width: 100%;
-    height: 200px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 20px;
-}
-
-.case-image {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-}
-
-.roulette-container.hidden {
-    display: none;
-}
-
-.case-image-container.hidden {
-    display: none;
-}
-
-/* Управление видимостью элементов */
-.case-image-container {
-    display: flex;
-    opacity: 1;
-    transition: opacity 0.3s ease;
-}
-
-.case-image-container.hidden {
-    display: none;
-    opacity: 0;
-}
-
-.roulette-container {
-    display: none;
-    opacity: 0;
-    height: 200px;
-    transition: opacity 0.3s ease;
-}
-
-.roulette-container.visible {
-    display: block;
-    opacity: 1;
-}
-
-/* Гарантируем, что рулетка будет видна */
-.roulette-items {
-    display: flex;
-    height: 100%;
-}
-
-.roulette-item {
-    min-width: 150px;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* Адаптация для мобильных */
+@media (max-width: 480px) {
+    .won-item-container {
+        height: 380px;
+        padding: 15px;
+    }
+    
+    .won-item-image {
+        width: 140px;
+        height: 140px;
+    }
+    
+    .possible-prizes {
+        margin-top: 20px;
+    }
 }

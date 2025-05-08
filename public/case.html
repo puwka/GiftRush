@@ -50,15 +50,31 @@
                 <h1 id="case-name">Название кейса</h1>
             </div>
 
-            <!-- В основном контенте, перед рулеткой -->
-            <div class="case-image-container" id="case-image-container">
-                <img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="Изображение кейса" class="case-image">
-            </div>
-
-            <!-- Рулетка -->
-            <div class="roulette-container hidden" id="roulette-container">
-                <div class="roulette-items" id="roulette-items"></div>
-                <div class="roulette-center"></div>
+            <div class="game-container">
+                <!-- Контейнер для изображения кейса -->
+                <div class="case-image-container" id="case-image-container">
+                    <img src="https://images.giftsbattle.com/case/%D0%B7%D0%B0_%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4%D1%8B_2.png" alt="Кейс" class="case-image">
+                </div>
+                
+                <!-- Контейнер рулетки -->
+                <div class="roulette-container hidden" id="roulette-container">
+                    <div class="roulette-items" id="roulette-items"></div>
+                    <div class="roulette-center"></div>
+                </div>
+                
+                <!-- Контейнер выигрыша -->
+                <div class="won-item-container hidden" id="won-item-container">
+                    <img src="" alt="Выигранный предмет" class="won-item-image" id="won-item-image">
+                    <h3 class="won-item-name" id="won-item-name"></h3>
+                    <div class="won-item-value">
+                        <i class="fas fa-coins"></i>
+                        <span id="won-item-value">0</span>
+                    </div>
+                    <div class="won-item-buttons">
+                        <button class="try-again-btn" id="try-again-btn">Еще раз</button>
+                        <button class="sell-item-btn" id="sell-item-btn">Продать</button>
+                    </div>
+                </div>
             </div>
 
             <!-- Цена и управление количеством -->

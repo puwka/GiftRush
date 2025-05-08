@@ -31,8 +31,9 @@ async function initApp() {
       // Обновляем UI
       updateUI(user)
       
-      // Загружаем статистику
+      // Загружаем статистику и инвентарь
       await loadUserStats(user.tg_id)
+      await loadUserInventory(user.tg_id)
 
     } catch (error) {
       console.error('Ошибка инициализации:', error)
@@ -100,6 +101,210 @@ async function loadUserStats(userId) {
     }
   } catch (error) {
     console.error('Ошибка загрузки статистики:', error)
+  }
+}
+
+// Загрузка инвентаря пользователя
+async function loadUserInventory(userId) {
+  try {
+    const { data: inventory, error } = await supabase
+      .from('user_inventory')
+      .select('*, case_items(*)')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+
+    renderInventory(inventory)
+  } catch (error) {
+    console.error('Ошибка загрузки инвентаря:', error)
+  }
+}
+
+// Отображение инвентаря
+function renderInventory(items) {
+  const inventoryContainer = document.getElementById('inventory-items')
+  if (!inventoryContainer) return
+
+  if (items.length === 0) {
+    inventoryContainer.innerHTML = '<div class="empty-inventory">Ваш инвентарь пуст</div>'
+    return
+  }
+
+  let html = ''
+  items.forEach(item => {
+    html += `
+      <div class="inventory-item rarity-${item.case_items.rarity || 'common'}" data-item-id="${item.id}">
+        <div class="inventory-image">
+          <img src="${item.case_items.image_url || 'https://via.placeholder.com/120'}" alt="${item.case_items.name}">
+        </div>
+        <div class="inventory-info">
+          <div class="inventory-name">${item.case_items.name}</div>
+          <div class="inventory-value">${item.case_items.value} <i class="fas fa-coins"></i></div>
+        </div>
+        <div class="inventory-actions">
+          <button class="inventory-btn sell-btn" data-item-id="${item.id}" data-value="${item.case_items.value}">
+            <i class="fas fa-coins"></i> Продать
+          </button>
+          <button class="inventory-btn withdraw-btn" data-item-id="${item.id}">
+            <i class="fas fa-external-link-alt"></i> Вывести
+          </button>
+        </div>
+      </div>
+    `
+  })
+
+  inventoryContainer.innerHTML = html
+  setupInventoryEventListeners()
+}
+
+// Обработчики событий для инвентаря
+function setupInventoryEventListeners() {
+  // Продажа предмета
+  document.querySelectorAll('.sell-btn').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const itemId = this.dataset.itemId
+      const itemValue = parseInt(this.dataset.value)
+      
+      if (confirm(`Продать предмет за ${itemValue} монет?`)) {
+        await sellInventoryItem(itemId, itemValue)
+      }
+    })
+  })
+
+  // Продажа всех предметов
+  document.getElementById('sell-all-btn')?.addEventListener('click', async function() {
+    const items = document.querySelectorAll('.inventory-item')
+    if (items.length === 0) return
+    
+    const totalValue = Array.from(items).reduce((sum, item) => {
+      return sum + parseInt(item.querySelector('.inventory-value').textContent)
+    }, 0)
+    
+    if (confirm(`Продать все предметы за ${totalValue} монет?`)) {
+      await sellAllInventoryItems()
+    }
+  })
+
+  // Вывод предмета
+  document.querySelectorAll('.withdraw-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const itemId = this.dataset.itemId
+      tg.showAlert('Функция вывода предмета будет реализована в будущем')
+    })
+  })
+}
+
+// Продажа предмета из инвентаря
+async function sellInventoryItem(itemId, itemValue) {
+  try {
+    // Удаляем предмет из инвентаря
+    const { error: deleteError } = await supabase
+      .from('user_inventory')
+      .delete()
+      .eq('id', itemId)
+    
+    if (deleteError) throw deleteError
+    
+    // Обновляем баланс пользователя
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('balance')
+      .eq('tg_id', tg.initDataUnsafe.user.id)
+      .single()
+    
+    if (userError) throw userError
+    
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ balance: user.balance + itemValue })
+      .eq('tg_id', tg.initDataUnsafe.user.id)
+    
+    if (updateError) throw updateError
+    
+    // Записываем транзакцию
+    await supabase
+      .from('transactions')
+      .insert({
+        user_id: tg.initDataUnsafe.user.id,
+        amount: itemValue,
+        type: 'item_sell',
+        description: 'Продажа предмета из инвентаря'
+      })
+    
+    // Обновляем UI
+    await loadUserStats(tg.initDataUnsafe.user.id)
+    await loadUserInventory(tg.initDataUnsafe.user.id)
+    
+    tg.showAlert(`Предмет успешно продан за ${itemValue} монет`)
+  } catch (error) {
+    console.error('Ошибка продажи предмета:', error)
+    tg.showAlert('Произошла ошибка при продаже предмета')
+  }
+}
+
+// Продажа всех предметов из инвентаря
+async function sellAllInventoryItems() {
+  try {
+    // Получаем все предметы пользователя
+    const { data: inventory, error: inventoryError } = await supabase
+      .from('user_inventory')
+      .select('*, case_items(value)')
+      .eq('user_id', tg.initDataUnsafe.user.id)
+    
+    if (inventoryError) throw inventoryError
+    
+    if (inventory.length === 0) {
+      tg.showAlert('В инвентаре нет предметов для продажи')
+      return
+    }
+    
+    // Считаем общую стоимость
+    const totalValue = inventory.reduce((sum, item) => sum + item.case_items.value, 0)
+    const itemIds = inventory.map(item => item.id)
+    
+    // Удаляем все предметы
+    const { error: deleteError } = await supabase
+      .from('user_inventory')
+      .delete()
+      .in('id', itemIds)
+    
+    if (deleteError) throw deleteError
+    
+    // Обновляем баланс
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('balance')
+      .eq('tg_id', tg.initDataUnsafe.user.id)
+      .single()
+    
+    if (userError) throw userError
+    
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ balance: user.balance + totalValue })
+      .eq('tg_id', tg.initDataUnsafe.user.id)
+    
+    if (updateError) throw updateError
+    
+    // Записываем транзакцию
+    await supabase
+      .from('transactions')
+      .insert({
+        user_id: tg.initDataUnsafe.user.id,
+        amount: totalValue,
+        type: 'item_sell_all',
+        description: 'Продажа всех предметов из инвентаря'
+      })
+    
+    // Обновляем UI
+    await loadUserStats(tg.initDataUnsafe.user.id)
+    await loadUserInventory(tg.initDataUnsafe.user.id)
+    
+    tg.showAlert(`Все предметы проданы за ${totalValue} монет`)
+  } catch (error) {
+    console.error('Ошибка продажи всех предметов:', error)
+    tg.showAlert('Произошла ошибка при продаже предметов')
   }
 }
 

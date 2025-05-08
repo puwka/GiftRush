@@ -702,3 +702,159 @@ html {
     transform: translateY(-2px);
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
 }
+
+/* Добавляем в конец файла style.css */
+
+/* Стили для инвентаря */
+.inventory-section {
+  margin-top: 20px;
+}
+
+.inventory-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.inventory-title {
+  color: #f5f5f5;
+  font-size: 20px;
+}
+
+.sell-all-btn {
+  background: linear-gradient(135deg, #f1c40f, #f39c12);
+  color: #121212;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 15px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s;
+}
+
+.sell-all-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(241, 196, 15, 0.3);
+}
+
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 15px;
+}
+
+.inventory-item {
+  background: #252525;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border: 2px solid;
+  display: flex;
+  flex-direction: column;
+}
+
+.inventory-image {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1e1e1e;
+  padding: 15px;
+}
+
+.inventory-image img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.inventory-info {
+  padding: 12px;
+  text-align: center;
+  background: #252525;
+}
+
+.inventory-name {
+  font-size: 14px;
+  color: #f5f5f5;
+  margin-bottom: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.inventory-value {
+  color: #f1c40f;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 16px;
+}
+
+.inventory-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 12px 12px;
+}
+
+.inventory-btn {
+  padding: 8px;
+  border-radius: 6px;
+  border: none;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: all 0.2s;
+}
+
+.sell-btn {
+  background: #2ecc71;
+  color: white;
+}
+
+.withdraw-btn {
+  background: #3498db;
+  color: white;
+}
+
+.inventory-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.empty-inventory {
+  text-align: center;
+  color: #aaa;
+  padding: 30px;
+  grid-column: 1 / -1;
+}
+
+/* Редкости предметов (те же, что и для призов) */
+.rarity-common { border-color: #aaa; }
+.rarity-uncommon { border-color: #2ecc71; }
+.rarity-rare { border-color: #3498db; }
+.rarity-epic { border-color: #9b59b6; }
+.rarity-legendary { border-color: #f1c40f; }
+.rarity-mythic { border-color: #e74c3c; }
+
+@media (max-width: 480px) {
+  .inventory-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .inventory-image {
+    height: 100px;
+  }
+}

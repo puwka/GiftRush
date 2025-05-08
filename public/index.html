@@ -235,52 +235,66 @@
                 </div>
             </div>
 
-            <!-- Вкладка профиля (изначально скрыта) -->
+            <!-- Обновляем блок profile-tab в index.html -->
+
             <div class="tab-content hidden" id="profile-tab">
                 <div class="profile-container">
-                    <div class="profile-header">
-                        <div class="avatar">
-                            <i class="fas fa-user-circle"></i>
-                        </div>
-                        <h2>Ваш профиль</h2>
-                        <p class="username">@username</p>
+                <div class="profile-header">
+                    <div class="avatar">
+                    <i class="fas fa-user-circle"></i>
                     </div>
-
-                    <div class="profile-stats">
-                        <div class="stat-item">
-                            <i class="fas fa-coins"></i>
-                            <div>
-                                <span class="stat-value">0</span>
-                                <span class="stat-label">Баланс</span>
-                            </div>
-                        </div>
-                        <div class="stat-item">
-                            <i class="fas fa-box-open"></i>
-                            <div>
-                                <span class="stat-value">24</span>
-                                <span class="stat-label">Открыто кейсов</span>
-                            </div>
-                        </div>
-                        <div class="stat-item">
-                            <i class="fas fa-trophy"></i>
-                            <div>
-                                <span class="stat-value">5</span>
-                                <span class="stat-label">Выиграно призов</span>
-                            </div>
-                        </div>
+                    <h2>Ваш профиль</h2>
+                    <p class="username">@username</p>
+                </div>
+            
+                <div class="profile-stats">
+                    <div class="stat-item">
+                    <i class="fas fa-coins"></i>
+                    <div>
+                        <span class="stat-value">0</span>
+                        <span class="stat-label">Баланс</span>
                     </div>
-
-                    <div class="profile-actions">
-                        <button class="action-btn purple">
-                            <i class="fas fa-wallet"></i> Пополнить баланс
-                        </button>
-                        <button class="action-btn dark">
-                            <i class="fas fa-cog"></i> Настройки
-                        </button>
-                        <button class="action-btn red">
-                            <i class="fas fa-sign-out-alt"></i> Выйти
-                        </button>
                     </div>
+                    <div class="stat-item">
+                    <i class="fas fa-box-open"></i>
+                    <div>
+                        <span class="stat-value">0</span>
+                        <span class="stat-label">Открыто кейсов</span>
+                    </div>
+                    </div>
+                    <div class="stat-item">
+                    <i class="fas fa-trophy"></i>
+                    <div>
+                        <span class="stat-value">0</span>
+                        <span class="stat-label">Выиграно призов</span>
+                    </div>
+                    </div>
+                </div>
+            
+                <div class="profile-actions">
+                    <button class="action-btn purple">
+                    <i class="fas fa-wallet"></i> Пополнить баланс
+                    </button>
+                    <button class="action-btn dark">
+                    <i class="fas fa-cog"></i> Настройки
+                    </button>
+                    <button class="action-btn red">
+                    <i class="fas fa-sign-out-alt"></i> Выйти
+                    </button>
+                </div>
+            
+                <!-- Добавляем секцию инвентаря -->
+                <div class="inventory-section">
+                    <div class="inventory-header">
+                    <h3 class="inventory-title">Ваш инвентарь</h3>
+                    <button class="sell-all-btn" id="sell-all-btn">
+                        <i class="fas fa-coins"></i> Продать всё
+                    </button>
+                    </div>
+                    <div class="inventory-grid" id="inventory-items">
+                    <!-- Инвентарь будет загружаться динамически -->
+                    </div>
+                </div>
                 </div>
             </div>
         </main>

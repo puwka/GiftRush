@@ -318,30 +318,56 @@ async function openCases(count) {
   isSpinning = false;
 }
 
+// Обновляем функцию showWonItem в case.js
+
 async function showWonItem(item) {
   return new Promise(resolve => {
-      wonItemImage.src = item.image_url || 'https://via.placeholder.com/150';
-      wonItemName.textContent = item.name;
-      document.getElementById('won-item-value').textContent = item.value;
+    wonItemImage.src = item.image_url || 'https://via.placeholder.com/150';
+    wonItemName.textContent = item.name;
+    document.getElementById('won-item-value').textContent = item.value;
+    
+    // Сдвигаем возможные призы вниз
+    const possiblePrizes = document.querySelector('.possible-prizes');
+    possiblePrizes.style.marginTop = '200px';
+    
+    // Плавное появление
+    wonItemContainer.style.opacity = '0';
+    wonItemContainer.style.transform = 'translateY(20px)';
+    wonItemContainer.classList.remove('hidden');
+    wonItemContainer.style.display = 'flex';
+    
+    setTimeout(() => {
+      wonItemContainer.style.opacity = '1';
+      wonItemContainer.style.transform = 'translateY(0)';
       
-      // Сдвигаем возможные призы вниз
-      const possiblePrizes = document.querySelector('.possible-prizes');
-      possiblePrizes.style.marginTop = '200px';
+      // Сохраняем предмет в инвентарь, если пользователь авторизован
+      if (tg.initDataUnsafe?.user && !demoModeToggle.checked) {
+        saveToInventory(item);
+      }
       
-      // Плавное появление
-      wonItemContainer.style.opacity = '0';
-      wonItemContainer.style.transform = 'translateY(20px)';
-      wonItemContainer.classList.remove('hidden');
-      wonItemContainer.style.display = 'flex';
-      
-      setTimeout(() => {
-          wonItemContainer.style.opacity = '1';
-          wonItemContainer.style.transform = 'translateY(0)';
-          resolve();
-      }, 50);
+      resolve();
+    }, 50);
   });
 }
 
+// Новая функция для сохранения предмета в инвентарь
+async function saveToInventory(item) {
+  try {
+    const { error } = await supabase
+      .from('user_inventory')
+      .insert({
+        user_id: tg.initDataUnsafe.user.id,
+        item_id: item.id,
+        case_id: caseId
+      });
+    
+    if (error) throw error;
+  } catch (error) {
+    console.error('Ошибка сохранения в инвентарь:', error);
+  }
+}
+
+// Обновляем функцию tryAgain
 function tryAgain() {
   // Возвращаем возможные призы на место
   const possiblePrizes = document.querySelector('.possible-prizes');
@@ -352,15 +378,15 @@ function tryAgain() {
   wonItemContainer.style.transform = 'translateY(20px)';
   
   setTimeout(() => {
-      wonItemContainer.style.display = 'none';
-      
-      // Показываем элементы управления
-      document.querySelector('.case-controls').classList.remove('hidden');
-      document.querySelector('.open-case-btn').classList.remove('hidden');
-      document.querySelector('.demo-mode-container').classList.remove('hidden');
-      
-      // Показываем изображение кейса
-      caseImageContainer.classList.remove('hidden');
+    wonItemContainer.style.display = 'none';
+    
+    // Показываем элементы управления
+    document.querySelector('.case-controls').classList.remove('hidden');
+    document.querySelector('.open-case-btn').classList.remove('hidden');
+    document.querySelector('.demo-mode-container').classList.remove('hidden');
+    
+    // Показываем изображение кейса
+    caseImageContainer.classList.remove('hidden');
   }, 300);
 }
 

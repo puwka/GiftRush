@@ -1,7 +1,9 @@
 {
   "dependencies": {
-  "@supabase/supabase-js": "^2.0.0",
-  "express": "^4.18.2",
-  "cors": "^2.8.5"
-}
+    "@supabase/supabase-js": "^2.0.0",
+    "@tonconnect/sdk": "^3.1.0",
+    "@tonconnect/ui": "^2.1.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
+  }
 }

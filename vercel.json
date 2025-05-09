@@ -16,16 +16,19 @@
     {
       "src": "*.json",
       "use": "@vercel/static"
-    }
-  ],
-    "routes": [
-    {
-      "src": "/",
-      "dest": "/index.html"
     },
     {
-      "src": "/case",
-      "dest": "/case.html"
+      "src": "img/*",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/tonconnect-manifest.json",
+      "dest": "/tonconnect-manifest.json",
+      "headers": {
+        "Content-Type": "application/json"
+      }
     },
     {
       "src": "/css/(.*)",
@@ -36,16 +39,21 @@
       "dest": "/js/$1"
     },
     {
+      "src": "/img/(.*)",
+      "dest": "/img/$1"
+    },
+    {
+      "src": "/case",
+      "dest": "/case.html"
+    },
+    {
+      "src": "/",
+      "dest": "/index.html"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html",
       "status": 200
-    },
-    {
-      "src": "/tonconnect-manifest.json",
-      "dest": "/tonconnect-manifest.json",
-      "headers": {
-        "Content-Type": "application/json"
-      }
     }
   ],
   "headers": [
@@ -65,6 +73,29 @@
           "value": "public, max-age=3600"
         }
       ]
+    },
+    {
+      "source": "/tonconnect-manifest.json",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/terms",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/index.html"
     }
   ]
 }

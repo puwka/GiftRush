@@ -46,34 +46,47 @@ function toNano(amount) {
 // Инициализация TonConnect
 // Замените текущую функцию initTonConnect на эту:
 async function initTonConnect() {
-  try {
-    // Динамическая загрузка SDK, если не загружен
-    if (typeof window.TonConnectUI === 'undefined') {
-      await new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = 'https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js';
-        script.onload = () => {
-          console.log('TonConnect SDK loaded successfully');
-          setTimeout(resolve, 500); // Даем время на инициализацию
-        };
-        script.onerror = reject;
-        document.head.appendChild(script);
-      });
+  return new Promise(async (resolve) => {
+    // 1. Проверяем, возможно SDK уже загружен
+    if (window.TonConnectUI) {
+      console.log('TonConnect SDK already loaded');
+      initializeTonConnectUI(resolve);
+      return;
     }
 
+    // 2. Динамически загружаем SDK
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js';
+    script.onload = () => {
+      console.log('TonConnect script loaded, waiting for initialization...');
+      // Даем время на полную инициализацию SDK
+      setTimeout(() => initializeTonConnectUI(resolve), 500);
+    };
+    script.onerror = () => {
+      console.error('Failed to load TonConnect SDK');
+      resolve(false);
+    };
+    document.head.appendChild(script);
+  });
+}
+
+function initializeTonConnectUI(callback) {
+  try {
     if (!window.TonConnectUI) {
-      throw new Error('TonConnectUI still not available after loading');
+      throw new Error('TonConnectUI not available');
     }
 
     tonConnectUI = new window.TonConnectUI.TonConnectUI({
       manifestUrl: 'https://gift-rush.vercel.app/tonconnect-manifest.json',
-      buttonRootId: 'ton-connect-button'
+      buttonRootId: 'ton-connect-button',
+      language: 'ru'
     });
 
-    return tonConnectUI.connected;
+    console.log('TonConnectUI initialized successfully');
+    callback(true);
   } catch (error) {
-    console.error('TonConnect initialization error:', error);
-    return false;
+    console.error('TonConnectUI initialization failed:', error);
+    callback(false);
   }
 }
 
@@ -84,6 +97,13 @@ async function processTonConnectPayment(amount, totalAmount) {
       await initTonConnect();
     } catch (e) {
       throw new Error('Не удалось инициализировать TonConnect');
+    }
+  }
+
+  if (!window.TonConnectUI || !tonConnectUI) {
+    const loaded = await initTonConnect();
+    if (!loaded) {
+      throw new Error('TonConnect не доступен. Пожалуйста, попробуйте позже.');
     }
   }
 
@@ -143,17 +163,6 @@ const statCases = document.querySelector('.stat-item:nth-child(2) .stat-value')
 const statPrizes = document.querySelector('.stat-item:nth-child(3) .stat-value')
 const casesContainer = document.getElementById('cases-container')
 
-async function loadTonConnect() {
-  const script = document.createElement('script');
-  script.src = 'https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js';
-  document.head.appendChild(script);
-  
-  return new Promise((resolve) => {
-    script.onload = () => resolve();
-  });
-}
-
-// Основная функция инициализации
 async function initApp() {
   try {
     // 1. Инициализация Telegram WebApp
@@ -162,38 +171,39 @@ async function initApp() {
     tg.setHeaderColor('#181818');
     tg.setBackgroundColor('#121212');
 
-    // 2. Параллельная загрузка пользователя и TonConnect
-    const [userLoaded, tonConnectReady] = await Promise.allSettled([
-      loadUserData(),
-      initTonConnect()
-    ]);
-
-    // 3. Обработка результатов загрузки
-    if (userLoaded.status === 'fulfilled' && userLoaded.value) {
-      updateUI(userLoaded.value);
-      await loadUserStats(userLoaded.value.tg_id);
-      await loadUserInventory(userLoaded.value.tg_id);
+    // 2. Загрузка пользователя (не зависит от TonConnect)
+    const user = await loadUserData();
+    if (user) {
+      updateUI(user);
+      await loadUserStats(user.tg_id);
+      await loadUserInventory(user.tg_id);
     } else {
-      console.log('Demo mode - no user data');
+      console.log('Running in demo mode');
       userBalance.textContent = "∞";
       statBalance.textContent = "0";
       statCases.textContent = "0";
       statPrizes.textContent = "0";
     }
 
-    if (tonConnectReady.status === 'fulfilled' && tonConnectReady.value) {
-      console.log('TonConnect ready');
-      tonConnectUI.onStatusChange((wallet) => {
-        console.log('Wallet status changed:', wallet ? 'connected' : 'disconnected');
-      });
-    }
+    // 3. Инициализация TonConnect (не блокирует основной интерфейс)
+    initTonConnect().then((success) => {
+      if (success) {
+        console.log('TonConnect ready for use');
+        tonConnectUI.onStatusChange((wallet) => {
+          console.log('Wallet status:', wallet ? 'connected' : 'disconnected');
+        });
+      } else {
+        console.warn('TonConnect initialization failed - payment features disabled');
+      }
+    });
 
-    // 4. Настройка UI
+    // 4. Показываем интерфейс
     setupEventListeners();
     document.body.style.opacity = '1';
 
   } catch (error) {
-    console.error('App initialization failed:', error);
+    console.error('App initialization error:', error);
+    tg.showAlert('Ошибка инициализации приложения');
     setTimeout(() => tg.close(), 3000);
   }
 }

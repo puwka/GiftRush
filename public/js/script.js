@@ -47,24 +47,29 @@ function toNano(amount) {
 // Замените текущую функцию initTonConnect на эту:
 async function initTonConnect() {
   try {
-    // Проверяем, загружен ли TonConnectUI
+    // Динамическая загрузка SDK, если не загружен
     if (typeof window.TonConnectUI === 'undefined') {
-      console.log('TonConnectUI not loaded, waiting...');
-      await new Promise(resolve => {
-        const checkInterval = setInterval(() => {
-          if (typeof window.TonConnectUI !== 'undefined') {
-            clearInterval(checkInterval);
-            resolve();
-          }
-        }, 100);
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js';
+        script.onload = () => {
+          console.log('TonConnect SDK loaded successfully');
+          setTimeout(resolve, 500); // Даем время на инициализацию
+        };
+        script.onerror = reject;
+        document.head.appendChild(script);
       });
     }
 
+    if (!window.TonConnectUI) {
+      throw new Error('TonConnectUI still not available after loading');
+    }
+
     tonConnectUI = new window.TonConnectUI.TonConnectUI({
-      manifestUrl: manifestUrl,
+      manifestUrl: 'https://gift-rush.vercel.app/tonconnect-manifest.json',
       buttonRootId: 'ton-connect-button'
     });
-    
+
     return tonConnectUI.connected;
   } catch (error) {
     console.error('TonConnect initialization error:', error);
@@ -154,73 +159,68 @@ async function initApp() {
     // 1. Инициализация Telegram WebApp
     tg.expand();
     tg.enableClosingConfirmation();
-    
-    // 2. Установка цветов интерфейса Telegram
     tg.setHeaderColor('#181818');
     tg.setBackgroundColor('#121212');
-    
-    // 3. Инициализация TonConnect
-    let isTonConnectReady = false;
-    try {
-      isTonConnectReady = await initTonConnect();
-      if (isTonConnectReady) {
-        console.log('TonConnect успешно инициализирован');
-        
-        // Подписка на события изменения подключения
-        tonConnectUI.onStatusChange((wallet) => {
-          if (wallet) {
-            console.log('Кошелек подключен:', wallet);
-          } else {
-            console.log('Кошелек отключен');
-          }
-        });
-      }
-    } catch (e) {
-      console.error('Ошибка инициализации TonConnect:', e);
-    }
 
-    // 4. Загрузка данных пользователя
-    if (tg.initDataUnsafe?.user) {
-      const userData = tg.initDataUnsafe.user;
-      
-      // Сохраняем/обновляем пользователя в БД
-      const user = await upsertUser(userData);
-      
-      // Обновляем интерфейс
-      updateUI(user);
-      
-      // Загружаем статистику
-      await loadUserStats(user.tg_id);
-      
-      // Загружаем инвентарь
-      await loadUserInventory(user.tg_id);
-      
-      // Обновляем баланс в реальном времени
-      if (isTonConnectReady) {
-        await checkPendingTransactions(user.tg_id);
-      }
+    // 2. Параллельная загрузка пользователя и TonConnect
+    const [userLoaded, tonConnectReady] = await Promise.allSettled([
+      loadUserData(),
+      initTonConnect()
+    ]);
+
+    // 3. Обработка результатов загрузки
+    if (userLoaded.status === 'fulfilled' && userLoaded.value) {
+      updateUI(userLoaded.value);
+      await loadUserStats(userLoaded.value.tg_id);
+      await loadUserInventory(userLoaded.value.tg_id);
     } else {
-      console.log('Режим демонстрации (пользователь не авторизован)');
-      // В демо-режиме показываем пример данных
+      console.log('Demo mode - no user data');
       userBalance.textContent = "∞";
       statBalance.textContent = "0";
       statCases.textContent = "0";
       statPrizes.textContent = "0";
     }
 
-    // 5. Настройка обработчиков событий
+    if (tonConnectReady.status === 'fulfilled' && tonConnectReady.value) {
+      console.log('TonConnect ready');
+      tonConnectUI.onStatusChange((wallet) => {
+        console.log('Wallet status changed:', wallet ? 'connected' : 'disconnected');
+      });
+    }
+
+    // 4. Настройка UI
     setupEventListeners();
-    
-    // 6. Показываем интерфейс после загрузки
     document.body.style.opacity = '1';
-    
+
   } catch (error) {
-    console.error('Ошибка инициализации приложения:', error);
-    
-    // В случае критической ошибки закрываем приложение
-    setTimeout(() => {
-      tg.close();
-    }, 3000);
+    console.error('App initialization failed:', error);
+    setTimeout(() => tg.close(), 3000);
+  }
+}
+
+async function loadUserData() {
+  if (!tg.initDataUnsafe?.user) return null;
+  
+  try {
+    const userData = tg.initDataUnsafe.user;
+    const { data: user, error } = await supabase
+      .from('users')
+      .upsert({
+        tg_id: userData.id,
+        username: userData.username || `${userData.first_name}${userData.last_name ? ' ' + userData.last_name : ''}`,
+        first_name: userData.first_name,
+        last_name: userData.last_name || null,
+        avatar_url: userData.photo_url || null,
+        last_login: new Date().toISOString()
+      }, { onConflict: 'tg_id' })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return user;
+  } catch (error) {
+    console.error('User data loading error:', error);
+    return null;
   }
 }
 

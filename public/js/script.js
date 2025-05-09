@@ -46,22 +46,25 @@ function toNano(amount) {
 // Инициализация TonConnect
 // Замените текущую функцию initTonConnect на эту:
 async function initTonConnect() {
-  if (typeof window.TonConnectUI === 'undefined') {
-    // Динамически загружаем SDK если не загружен
-    await new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = 'https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js';
-      script.onload = resolve;
-      script.onerror = reject;
-      document.head.appendChild(script);
-    });
-  }
-
   try {
-    tonConnectUI = new TonConnectUI.TonConnectUI({
+    // Проверяем, загружен ли TonConnectUI
+    if (typeof window.TonConnectUI === 'undefined') {
+      console.log('TonConnectUI not loaded, waiting...');
+      await new Promise(resolve => {
+        const checkInterval = setInterval(() => {
+          if (typeof window.TonConnectUI !== 'undefined') {
+            clearInterval(checkInterval);
+            resolve();
+          }
+        }, 100);
+      });
+    }
+
+    tonConnectUI = new window.TonConnectUI.TonConnectUI({
       manifestUrl: manifestUrl,
       buttonRootId: 'ton-connect-button'
     });
+    
     return tonConnectUI.connected;
   } catch (error) {
     console.error('TonConnect initialization error:', error);
@@ -167,8 +170,10 @@ async function initApp() {
         tonConnectUI.onStatusChange((wallet) => {
           if (wallet) {
             console.log('Кошелек подключен:', wallet);
+            // Можно обновить UI или выполнить другие действия при подключении кошелька
           } else {
             console.log('Кошелек отключен');
+            // Действия при отключении кошелька
           }
         });
       }

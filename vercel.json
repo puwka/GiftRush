@@ -2,72 +2,26 @@
   "version": 2,
   "builds": [
     {
-      "src": "*.html",
+      "src": "public/**",
       "use": "@vercel/static"
-    },
-    {
-      "src": "css/*.css",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "js/*.js",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "img/*",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "api/manifest.js",
-      "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/tonconnect-manifest.json",
-      "dest": "/api/manifest.js",
-      "headers": {
-        "Content-Type": "application/json"
-      }
-    },
-    {
       "src": "/css/(.*)",
-      "dest": "/css/$1"
+      "dest": "/public/css/$1"
     },
     {
       "src": "/js/(.*)",
-      "dest": "/js/$1"
+      "dest": "/public/js/$1"
     },
     {
-      "src": "/img/(.*)",
-      "dest": "/img/$1"
-    },
-    {
-      "src": "/case",
-      "dest": "/case.html"
-    },
-    {
-      "src": "/",
-      "dest": "/index.html"
+      "src": "/case.html",
+      "dest": "/public/case.html"
     },
     {
       "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/tonconnect-manifest.json",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/json"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "no-store"
-        }
-      ]
+      "dest": "/public/index.html"
     }
   ]
 }

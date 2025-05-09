@@ -170,10 +170,8 @@ async function initApp() {
         tonConnectUI.onStatusChange((wallet) => {
           if (wallet) {
             console.log('Кошелек подключен:', wallet);
-            // Можно обновить UI или выполнить другие действия при подключении кошелька
           } else {
             console.log('Кошелек отключен');
-            // Действия при отключении кошелька
           }
         });
       }

@@ -2,26 +2,66 @@
   "version": 2,
   "builds": [
     {
-      "src": "public/**",
+      "src": "*.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "css/*.css",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "js/*.js",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "*.json",
       "use": "@vercel/static"
     }
   ],
   "routes": [
     {
+      "src": "/",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/case",
+      "dest": "/case.html"
+    },
+    {
       "src": "/css/(.*)",
-      "dest": "/public/css/$1"
+      "dest": "/css/$1"
     },
     {
       "src": "/js/(.*)",
-      "dest": "/public/js/$1"
+      "dest": "/js/$1"
     },
     {
-      "src": "/case.html",
-      "dest": "/public/case.html"
+      "src": "/tonconnect-manifest.json",
+      "dest": "/tonconnect-manifest.json"
     },
     {
       "src": "/(.*)",
-      "dest": "/public/index.html"
+      "dest": "/index.html",
+      "status": 200
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET,OPTIONS"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
     }
   ]
 }

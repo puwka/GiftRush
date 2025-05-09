@@ -45,23 +45,20 @@ function toNano(amount) {
 
 // Инициализация TonConnect
 async function initTonConnect() {
-  try {
-    // Проверяем, доступен ли TonConnect в глобальной области
-    if (typeof TonConnectUI === 'undefined') {
-      console.error('TonConnect SDK не загружен')
-      return false
-    }
+  if (typeof window.TonConnectUI === 'undefined') {
+    console.error('TonConnect SDK не загружен');
+    return false;
+  }
 
+  try {
     tonConnectUI = new TonConnectUI.TonConnectUI({
       manifestUrl: manifestUrl,
-      buttonRootId: 'ton-connect-button' // опционально
-    })
-
-    // Возвращаем статус подключения
-    return tonConnectUI.connected
+      buttonRootId: 'ton-connect-button'
+    });
+    return tonConnectUI.connected;
   } catch (error) {
-    console.error('Ошибка инициализации TonConnect:', error)
-    return false
+    console.error('Ошибка инициализации TonConnect:', error);
+    return false;
   }
 }
 
@@ -130,9 +127,20 @@ const statCases = document.querySelector('.stat-item:nth-child(2) .stat-value')
 const statPrizes = document.querySelector('.stat-item:nth-child(3) .stat-value')
 const casesContainer = document.getElementById('cases-container')
 
+async function loadTonConnect() {
+  const script = document.createElement('script');
+  script.src = 'https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js';
+  document.head.appendChild(script);
+  
+  return new Promise((resolve) => {
+    script.onload = () => resolve();
+  });
+}
+
 // Основная функция инициализации
 async function initApp() {
   // Инициализируем TonConnect
+  await loadTonConnect()
   await initTonConnect()
 
   if (tg.initDataUnsafe?.user) {

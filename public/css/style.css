@@ -1079,3 +1079,7 @@ html {
 .deposit-amount-input {
   -moz-appearance: textfield; /* Firefox */
 }
+
+.deposit-method[data-method="tonconnect"] .deposit-method-icon {
+	background: #0088cc;
+  }

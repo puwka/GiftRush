@@ -24,6 +24,36 @@ const DEPOSIT_METHODS = {
     bonus: 0.2,
     icon: 'bolt',
     currency: 'TON'
+  },
+  tonconnect: {
+    name: 'TonConnect (TON)',
+    rate: 240,
+    bonus: 0.2,
+    icon: 'wallet',
+    currency: 'TON'
+  }
+}
+
+// Инициализация TonConnect
+let tonConnect = null;
+const manifestUrl = 'https://yourdomain.com/tonconnect-manifest.json';
+
+async function initTonConnect() {
+  try {
+    tonConnect = new TonConnect.TonConnect({
+      manifestUrl: manifestUrl,
+      walletsListSource: TonConnect.WalletsListSource.CDN
+    });
+
+    // Проверяем, есть ли уже подключенный кошелек
+    if (tonConnect.connected) {
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Ошибка инициализации TonConnect:', error);
+    return false;
   }
 }
 
@@ -40,6 +70,9 @@ const casesContainer = document.getElementById('cases-container')
 
 // Основная функция инициализации
 async function initApp() {
+  // Инициализируем TonConnect
+  await initTonConnect();
+
   if (tg.initDataUnsafe?.user) {
     const userData = tg.initDataUnsafe.user
     try {
@@ -348,6 +381,112 @@ function updateUI(user) {
   }
 }
 
+// Обработка TonConnect платежа
+async function processTonConnectPayment(amount, totalAmount) {
+  try {
+    // Если кошелек не подключен, показываем модальное окно для подключения
+    if (!tonConnect.connected) {
+      const walletsModal = await tonConnect.connect();
+      
+      walletsModal.onStatusChange((wallet) => {
+        if (wallet) {
+          // Кошелек подключен, можно продолжать
+          sendTonConnectTransaction(amount, totalAmount);
+        } else {
+          tg.showAlert('Подключение кошелька отменено');
+        }
+      });
+      
+      return;
+    }
+    
+    // Если кошелек уже подключен, сразу отправляем транзакцию
+    await sendTonConnectTransaction(amount, totalAmount);
+    
+  } catch (error) {
+    console.error('Ошибка TonConnect:', error);
+    tg.showAlert('Произошла ошибка при подключении кошелька');
+  }
+}
+
+// Отправка транзакции через TonConnect
+async function sendTonConnectTransaction(amount, totalAmount) {
+  try {
+    const userId = tg.initDataUnsafe.user.id;
+    const transactionId = `deposit_${userId}_${Date.now()}`;
+    
+    // Создаем транзакцию
+    const transaction = {
+      validUntil: Math.floor(Date.now() / 1000) + 300, // 5 минут
+      messages: [
+        {
+          address: 'UQAthLzScLE9Ks-MhL1oZk2AnMqcs02JEdDTGypNnt-GH6jD', // Замените на ваш TON кошелек
+          amount: toNano(amount).toString(),
+          payload: JSON.stringify({
+            type: 'deposit',
+            userId: userId,
+            transactionId: transactionId,
+            amount: amount,
+            totalAmount: totalAmount
+          })
+        }
+      ]
+    };
+    
+    // Отправляем транзакцию на подписание
+    const result = await tonConnect.sendTransaction(transaction);
+    
+    if (result) {
+      tg.showAlert('Транзакция отправлена. Ожидайте подтверждения...');
+      
+      // Сохраняем транзакцию в базу данных
+      await supabase
+        .from('ton_transactions')
+        .insert({
+          transaction_id: transactionId,
+          user_id: userId,
+          amount: amount,
+          status: 'pending',
+          boc: result.boc
+        });
+      
+      // Проверяем статус транзакции (можно реализовать через вебхуки или polling)
+      setTimeout(() => {
+        checkTonTransactionStatus(transactionId, userId, totalAmount);
+      }, 15000);
+    }
+    
+  } catch (error) {
+    console.error('Ошибка TonConnect транзакции:', error);
+    tg.showAlert('Произошла ошибка при отправке транзакции');
+  }
+}
+
+// Проверка статуса транзакции
+async function checkTonTransactionStatus(transactionId, userId, totalAmount) {
+  try {
+    // Здесь должна быть реализация проверки статуса транзакции
+    // Например, через ваш бэкенд или напрямую через TON API
+    
+    // В демонстрационных целях просто завершаем транзакцию
+    await completeDeposit(userId, totalAmount, 'tonconnect');
+    
+    // Обновляем статус транзакции
+    await supabase
+      .from('ton_transactions')
+      .update({ status: 'completed' })
+      .eq('transaction_id', transactionId);
+    
+  } catch (error) {
+    console.error('Ошибка проверки транзакции:', error);
+  }
+}
+
+// Вспомогательная функция для конвертации в нанотоны
+function toNano(amount) {
+  return BigInt(amount) * BigInt(1000000000);
+}
+
 // Обработчики кнопок
 function setupEventListeners() {
   // Переключение вкладок
@@ -427,7 +566,7 @@ function updateDepositCalculation() {
   
   const methodData = DEPOSIT_METHODS[method]
   const total = Math.floor(amount * methodData.rate)
-  const bonus = method === 'ton' ? Math.floor(amount * methodData.rate * methodData.bonus) : 0
+  const bonus = method === 'ton' || method === 'tonconnect' ? Math.floor(amount * methodData.rate * methodData.bonus) : 0
   
   document.getElementById('deposit-rate').textContent = 
     method === 'stars' ? '1 звезда = 1 монета' : '1 TON = 240 монет (+20%)'
@@ -441,7 +580,6 @@ function updateDepositCalculation() {
 async function processDeposit() {
   const method = document.querySelector('.deposit-method.active').dataset.method
   const amount = parseInt(document.getElementById('deposit-amount').value)
-  const tg = window.Telegram.WebApp
   
   if (!amount || amount <= 0) {
     tg.showAlert('Введите корректную сумму')
@@ -461,6 +599,12 @@ async function processDeposit() {
 
     const methodData = DEPOSIT_METHODS[method]
     const totalAmount = Math.floor(amount * methodData.rate)
+    
+    if (method === 'tonconnect') {
+      await processTonConnectPayment(amount, totalAmount)
+      closeDepositModal()
+      return
+    }
     
     // Параметры для платежа через Telegram
     const invoiceParams = {

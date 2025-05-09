@@ -44,10 +44,17 @@ function toNano(amount) {
 }
 
 // Инициализация TonConnect
+// Замените текущую функцию initTonConnect на эту:
 async function initTonConnect() {
   if (typeof window.TonConnectUI === 'undefined') {
-    console.error('TonConnect SDK не загружен');
-    return false;
+    // Динамически загружаем SDK если не загружен
+    await new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js';
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
   }
 
   try {
@@ -57,7 +64,7 @@ async function initTonConnect() {
     });
     return tonConnectUI.connected;
   } catch (error) {
-    console.error('Ошибка инициализации TonConnect:', error);
+    console.error('TonConnect initialization error:', error);
     return false;
   }
 }
@@ -65,9 +72,10 @@ async function initTonConnect() {
 // Обработка платежа через TonConnect
 async function processTonConnectPayment(amount, totalAmount) {
   if (!tonConnectUI) {
-    const initialized = await initTonConnect()
-    if (!initialized) {
-      throw new Error('Не удалось инициализировать TonConnect')
+    try {
+      await initTonConnect();
+    } catch (e) {
+      throw new Error('Не удалось инициализировать TonConnect');
     }
   }
 
@@ -139,33 +147,93 @@ async function loadTonConnect() {
 
 // Основная функция инициализации
 async function initApp() {
-  // Инициализируем TonConnect
-  await loadTonConnect()
-  await initTonConnect()
-
-  if (tg.initDataUnsafe?.user) {
-    const userData = tg.initDataUnsafe.user
+  try {
+    // 1. Инициализация Telegram WebApp
+    tg.expand();
+    tg.enableClosingConfirmation();
+    
+    // 2. Установка цветов интерфейса Telegram
+    tg.setHeaderColor('#181818');
+    tg.setBackgroundColor('#121212');
+    
+    // 3. Инициализация TonConnect
+    let isTonConnectReady = false;
     try {
-      // Сохраняем/обновляем пользователя
-      const user = await upsertUser(userData)
-      
-      // Обновляем UI
-      updateUI(user)
-      
-      // Загружаем статистику и инвентарь
-      await loadUserStats(user.tg_id)
-      await loadUserInventory(user.tg_id)
-
-    } catch (error) {
-      console.error('Ошибка инициализации:', error)
-      tg.showAlert('Произошла ошибка при загрузке данных')
+      isTonConnectReady = await initTonConnect();
+      if (isTonConnectReady) {
+        console.log('TonConnect успешно инициализирован');
+        
+        // Подписка на события изменения подключения
+        tonConnectUI.onStatusChange((wallet) => {
+          if (wallet) {
+            console.log('Кошелек подключен:', wallet);
+          } else {
+            console.log('Кошелек отключен');
+          }
+        });
+      }
+    } catch (e) {
+      console.error('Ошибка инициализации TonConnect:', e);
     }
-  } else {
-    console.log('Пользователь Telegram не авторизован')
-    // В демо-режиме добавляем обработчик для кнопки пополнения
-    document.getElementById('deposit-btn')?.addEventListener('click', () => {
-      document.getElementById('deposit-modal').classList.add('active')
-    })
+
+    // 4. Загрузка данных пользователя
+    if (tg.initDataUnsafe?.user) {
+      const userData = tg.initDataUnsafe.user;
+      
+      // Сохраняем/обновляем пользователя в БД
+      const user = await upsertUser(userData);
+      
+      // Обновляем интерфейс
+      updateUI(user);
+      
+      // Загружаем статистику
+      await loadUserStats(user.tg_id);
+      
+      // Загружаем инвентарь
+      await loadUserInventory(user.tg_id);
+      
+      // Обновляем баланс в реальном времени
+      if (isTonConnectReady) {
+        await checkPendingTransactions(user.tg_id);
+      }
+    } else {
+      console.log('Режим демонстрации (пользователь не авторизован)');
+      // В демо-режиме показываем пример данных
+      userBalance.textContent = "∞";
+      statBalance.textContent = "0";
+      statCases.textContent = "0";
+      statPrizes.textContent = "0";
+    }
+
+    // 5. Настройка обработчиков событий
+    setupEventListeners();
+    
+    // 6. Показываем интерфейс после загрузки
+    document.body.style.opacity = '1';
+    
+  } catch (error) {
+    console.error('Ошибка инициализации приложения:', error);
+    
+    // В случае критической ошибки закрываем приложение
+    setTimeout(() => {
+      tg.close();
+    }, 3000);
+  }
+}
+
+async function checkPendingTransactions(userId) {
+  const { data: transactions, error } = await supabase
+    .from('ton_transactions')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('status', 'pending');
+    
+  if (transactions?.length > 0) {
+    tg.showPopup({
+      title: 'Ожидающие транзакции',
+      message: `У вас есть ${transactions.length} неподтверждённых пополнений`,
+      buttons: [{ type: 'ok' }]
+    });
   }
 }
 

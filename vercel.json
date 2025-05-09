@@ -14,18 +14,18 @@
       "use": "@vercel/static"
     },
     {
-      "src": "*.json",
+      "src": "img/*",
       "use": "@vercel/static"
     },
     {
-      "src": "img/*",
-      "use": "@vercel/static"
+      "src": "api/manifest.js",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/tonconnect-manifest.json",
-      "dest": "/tonconnect-manifest.json",
+      "dest": "/api/manifest.js",
       "headers": {
         "Content-Type": "application/json"
       }
@@ -52,28 +52,10 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/index.html",
-      "status": 200
+      "dest": "/index.html"
     }
   ],
   "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET,OPTIONS"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=3600"
-        }
-      ]
-    },
     {
       "source": "/tonconnect-manifest.json",
       "headers": [
@@ -83,19 +65,9 @@
         },
         {
           "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate"
+          "value": "no-store"
         }
       ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/terms",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/privacy",
-      "destination": "/index.html"
     }
   ]
 }

@@ -2,20 +2,20 @@
   "version": 2,
   "builds": [
     {
-      "src": "*.html",
-      "use": "@vercel/static"
+      "src": "/css/(.*)",
+      "dest": "/public/css/$1"
     },
     {
-      "src": "css/*.css",
-      "use": "@vercel/static"
+      "src": "/js/(.*)",
+      "dest": "/public/js/$1"
     },
     {
-      "src": "js/*.js",
-      "use": "@vercel/static"
+      "src": "/case.html",
+      "dest": "/public/case.html"
     },
     {
-      "src": "img/*",
-      "use": "@vercel/static"
+      "src": "/(.*)",
+      "dest": "/public/index.html"
     },
     {
       "src": "api/manifest.js",

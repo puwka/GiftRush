@@ -36,7 +36,7 @@ const DEPOSIT_METHODS = {
 
 // Инициализация TonConnect
 let tonConnectUI = null
-const manifestUrl = 'https://yourdomain.com/tonconnect-manifest.json'
+const manifestUrl = 'https://gift-rush.vercel.app/tonconnect-manifest.json'
 
 // Функция для конвертации в нанотоны
 function toNano(amount) {

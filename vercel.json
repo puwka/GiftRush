@@ -18,7 +18,7 @@
       "use": "@vercel/static"
     }
   ],
-  "routes": [
+    "routes": [
     {
       "src": "/",
       "dest": "/index.html"
@@ -36,13 +36,16 @@
       "dest": "/js/$1"
     },
     {
-      "src": "/tonconnect-manifest.json",
-      "dest": "/tonconnect-manifest.json"
-    },
-    {
       "src": "/(.*)",
       "dest": "/index.html",
       "status": 200
+    },
+    {
+      "src": "/tonconnect-manifest.json",
+      "dest": "/tonconnect-manifest.json",
+      "headers": {
+        "Content-Type": "application/json"
+      }
     }
   ],
   "headers": [

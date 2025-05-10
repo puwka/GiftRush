@@ -38,6 +38,18 @@ const DEPOSIT_METHODS = {
 let tonConnectUI = null
 const manifestUrl = 'https://gift-rush.vercel.app/tonconnect-manifest.json'
 
+// Проверьте доступность манифеста перед инициализацией
+async function checkManifest() {
+  try {
+    const response = await fetch(manifestUrl);
+    if (!response.ok) throw new Error('Manifest not found');
+    return true;
+  } catch (error) {
+    console.error('Manifest check failed:', error);
+    return false;
+  }
+}
+
 // Функция для конвертации в нанотоны
 function toNano(amount) {
   return BigInt(amount) * BigInt(1000000000)
@@ -58,36 +70,15 @@ async function initTonConnect() {
       return;
     }
 
-    // 2. Если SDK не загружен, создаем промис для ожидания загрузки
-    window.TonConnectSDKLoaded = new Promise(sdkResolve => {
-      window.resolveTonConnectLoad = sdkResolve;
-    });
-
-    // 3. Динамически загружаем SDK
-    const script = document.createElement('script');
-    script.src = 'https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js';
-    script.onload = () => {
-      console.log('TonConnect script loaded');
-      // Даем время на полную инициализацию SDK
-      setTimeout(() => {
-        if (window.TonConnectUI) {
-          window.resolveTonConnectLoad();
-        } else {
-          console.error('TonConnectUI still not available after loading');
-          resolve(false);
-        }
-      }, 500);
-    };
-    script.onerror = () => {
-      console.error('Failed to load TonConnect SDK');
-      resolve(false);
-    };
-    document.head.appendChild(script);
-
-    // 4. Ожидаем загрузки SDK
+    // 2. Если SDK не загружен, ждем когда он загрузится через window.TonConnectSDKLoaded
     try {
       await window.TonConnectSDKLoaded;
-      initializeTonConnectUI(resolve);
+      if (window.TonConnectUI) {
+        initializeTonConnectUI(resolve);
+      } else {
+        console.error('TonConnectUI still not available after loading');
+        resolve(false);
+      }
     } catch (error) {
       console.error('Error waiting for TonConnect SDK:', error);
       resolve(false);

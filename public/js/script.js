@@ -35,8 +35,8 @@ const DEPOSIT_METHODS = {
 }
 
 // Инициализация TonConnect
-let tonConnectUI = null;
-const manifestUrl = 'https://gift-rush.vercel.app/tonconnect-manifest.json';
+let tonConnectUI = null
+const manifestUrl = 'https://gift-rush.vercel.app/tonconnect-manifest.json'
 
 // Функция для конвертации в нанотоны
 function toNano(amount) {
@@ -50,21 +50,15 @@ async function initTonConnect() {
     if (window.TonConnectUI) {
       console.log('TonConnect SDK already loaded');
       try {
-        tonConnectUI = new window.TonConnectUI.TonConnectUI({
-          manifestUrl: manifestUrl,
-          buttonRootId: 'ton-connect-button',
-          language: 'ru'
-        });
-        console.log('TonConnectUI initialized successfully');
-        resolve(true);
+        initializeTonConnectUI(resolve);
       } catch (error) {
-        console.error('TonConnectUI initialization error:', error);
+        console.error('TonConnect initialization error:', error);
         resolve(false);
       }
       return;
     }
 
-    // 2. Создаем промис для ожидания загрузки SDK
+    // 2. Если SDK не загружен, создаем промис для ожидания загрузки
     window.TonConnectSDKLoaded = new Promise(sdkResolve => {
       window.resolveTonConnectLoad = sdkResolve;
     });
@@ -74,7 +68,15 @@ async function initTonConnect() {
     script.src = 'https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js';
     script.onload = () => {
       console.log('TonConnect script loaded');
-      window.resolveTonConnectLoad();
+      // Даем время на полную инициализацию SDK
+      setTimeout(() => {
+        if (window.TonConnectUI) {
+          window.resolveTonConnectLoad();
+        } else {
+          console.error('TonConnectUI still not available after loading');
+          resolve(false);
+        }
+      }, 500);
     };
     script.onerror = () => {
       console.error('Failed to load TonConnect SDK');
@@ -85,24 +87,7 @@ async function initTonConnect() {
     // 4. Ожидаем загрузки SDK
     try {
       await window.TonConnectSDKLoaded;
-      
-      // Даем дополнительное время на инициализацию
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      if (!window.TonConnectUI) {
-        console.error('TonConnectUI still not available after loading');
-        resolve(false);
-        return;
-      }
-
-      tonConnectUI = new window.TonConnectUI.TonConnectUI({
-        manifestUrl: manifestUrl,
-        buttonRootId: 'ton-connect-button',
-        language: 'ru'
-      });
-
-      console.log('TonConnectUI initialized successfully');
-      resolve(true);
+      initializeTonConnectUI(resolve);
     } catch (error) {
       console.error('Error waiting for TonConnect SDK:', error);
       resolve(false);
@@ -132,23 +117,26 @@ function initializeTonConnectUI(callback) {
 
 // Обработка платежа через TonConnect
 async function processTonConnectPayment(amount, totalAmount) {
-  try {
-    // Проверяем инициализацию TonConnect
-    if (!tonConnectUI) {
+  if (!tonConnectUI) {
+    try {
       const loaded = await initTonConnect();
       if (!loaded) {
-        throw new Error('TonConnect не удалось инициализировать');
+        throw new Error('Не удалось инициализировать TonConnect');
       }
+    } catch (e) {
+      throw new Error('Не удалось инициализировать TonConnect');
     }
+  }
 
-    const userId = tg.initDataUnsafe.user.id;
-    const transactionId = `deposit_${userId}_${Date.now()}`;
+  try {
+    const userId = tg.initDataUnsafe.user.id
+    const transactionId = `deposit_${userId}_${Date.now()}`
 
     const transaction = {
       validUntil: Math.floor(Date.now() / 1000) + 300, // 5 минут
       messages: [
         {
-          address: 'UQAthLzScLE9Ks-MhL1oZk2AnMqcs02JEdDTGypNnt-GH6jD',
+          address: 'UQAthLzScLE9Ks-MhL1oZk2AnMqcs02JEdDTGypNnt-GH6jD', // Замените на ваш TON кошелек
           amount: toNano(amount).toString(),
           payload: JSON.stringify({
             type: 'deposit',
@@ -159,10 +147,10 @@ async function processTonConnectPayment(amount, totalAmount) {
           })
         }
       ]
-    };
+    }
 
     // Отправляем транзакцию
-    const result = await tonConnectUI.sendTransaction(transaction);
+    await tonConnectUI.sendTransaction(transaction)
 
     // Сохраняем информацию о транзакции
     const { error } = await supabase
@@ -173,14 +161,15 @@ async function processTonConnectPayment(amount, totalAmount) {
         amount: amount,
         total_amount: totalAmount,
         status: 'pending'
-      });
+      })
 
-    if (error) throw error;
+    if (error) throw error
 
-    return true;
+    tg.showAlert('Транзакция отправлена на подтверждение. Баланс обновится после подтверждения сети.')
+
   } catch (error) {
-    console.error('Ошибка TonConnect платежа:', error);
-    throw error;
+    console.error('Ошибка TonConnect платежа:', error)
+    throw new Error(error.message || 'Ошибка при обработке платежа через TonConnect')
   }
 }
 
@@ -203,7 +192,7 @@ async function initApp() {
     tg.setHeaderColor('#181818');
     tg.setBackgroundColor('#121212');
 
-    // 2. Загрузка пользователя
+    // 2. Загрузка пользователя (не зависит от TonConnect)
     const user = await loadUserData();
     if (user) {
       updateUI(user);
@@ -217,17 +206,15 @@ async function initApp() {
       statPrizes.textContent = "0";
     }
 
-    // 3. Инициализация TonConnect в фоновом режиме
-    initTonConnect().then(success => {
+    // 3. Инициализация TonConnect (не блокирует основной интерфейс)
+    initTonConnect().then((success) => {
       if (success) {
         console.log('TonConnect ready for use');
-        tonConnectUI.onStatusChange(wallet => {
+        tonConnectUI.onStatusChange((wallet) => {
           console.log('Wallet status:', wallet ? 'connected' : 'disconnected');
         });
       } else {
         console.warn('TonConnect initialization failed - payment features disabled');
-        // Скрываем кнопку TonConnect если инициализация не удалась
-        document.querySelector('.deposit-method[data-method="tonconnect"]').style.display = 'none';
       }
     });
 
@@ -237,9 +224,8 @@ async function initApp() {
 
   } catch (error) {
     console.error('App initialization error:', error);
-    setTimeout(() => {
-      tg.showAlert('Ошибка инициализации приложения');
-    }, 300);
+    tg.showAlert('Ошибка инициализации приложения');
+    setTimeout(() => tg.close(), 3000);
   }
 }
 
@@ -658,122 +644,69 @@ function updateDepositCalculation() {
 
 // Обработка пополнения баланса
 async function processDeposit() {
-  const method = document.querySelector('.deposit-method.active').dataset.method;
-  const amountInput = document.getElementById('deposit-amount');
-  const amount = parseInt(amountInput.value);
+  const method = document.querySelector('.deposit-method.active').dataset.method
+  const amount = parseInt(document.getElementById('deposit-amount').value)
   
-  // Проверка введенной суммы
   if (!amount || amount <= 0) {
-    await showSafeAlert('Введите корректную сумму');
-    return;
+    tg.showAlert('Введите корректную сумму')
+    return
   }
-
+  
   try {
-    const methodData = DEPOSIT_METHODS[method];
-    const totalAmount = Math.floor(amount * methodData.rate);
-    const bonusAmount = method === 'ton' || method === 'tonconnect' 
-      ? Math.floor(totalAmount * methodData.bonus) 
-      : 0;
-    const finalAmount = totalAmount + bonusAmount;
-
     // В демо-режиме просто увеличиваем баланс
     if (!tg.initDataUnsafe?.user) {
-      const currentBalance = parseInt(userBalance.textContent) || 0;
-      userBalance.textContent = currentBalance + finalAmount;
-      await showSafeAlert(`Баланс пополнен на ${finalAmount} монет (демо-режим)`);
-      closeDepositModal();
-      return;
+      const currentBalance = parseInt(document.getElementById('user-balance').textContent) || 0
+      const total = Math.floor(amount * DEPOSIT_METHODS[method].rate)
+      document.getElementById('user-balance').textContent = currentBalance + total
+      tg.showAlert(`Баланс пополнен на ${total} монет (демо-режим)`)
+      closeDepositModal()
+      return
     }
 
-    // Обработка разных методов оплаты
+    const methodData = DEPOSIT_METHODS[method]
+    const totalAmount = Math.floor(amount * methodData.rate)
+    
     if (method === 'tonconnect') {
-      closeDepositModal();
-      
-      // Показываем уведомление о начале процесса
-      await showSafePopup({
-        title: 'Пополнение через TonConnect',
-        message: `Подготовка транзакции на ${amount} TON...`
-      });
-
-      try {
-        const success = await processTonConnectPayment(amount, finalAmount);
-        if (success) {
-          await showSafeAlert(`Транзакция на ${amount} TON отправлена. Вы получите ${finalAmount} монет после подтверждения.`);
-        }
-      } catch (error) {
-        console.error('TonConnect payment error:', error);
-        await showSafeAlert(error.message || 'Ошибка при обработке платежа через TonConnect');
-      }
-      return;
+      closeDepositModal() // Закрываем модальное окно перед TonConnect
+      await processTonConnectPayment(amount, totalAmount)
+      return
     }
-
-    // Обработка Telegram Stars и других методов
+    
+    // Параметры для платежа через Telegram
     const invoiceParams = {
-      title: `Пополнение баланса на ${finalAmount} монет`,
-      description: `Вы получите ${amount} ${method === 'stars' ? 'звезд' : 'TON'}${bonusAmount > 0 ? ` (+${bonusAmount} бонус)` : ''}`,
+      title: `Пополнение баланса на ${totalAmount} монет`,
+      description: `Вы получите ${amount} ${method === 'stars' ? 'звезд' : 'TON'} (+${method === 'ton' ? '20% бонус' : '0%'})`,
       currency: methodData.currency,
       payload: JSON.stringify({
         type: 'deposit',
         method: method,
         amount: amount,
-        userId: tg.initDataUnsafe.user.id,
-        totalAmount: finalAmount
+        userId: tg.initDataUnsafe.user.id
       })
-    };
+    }
 
-    // Настройки для разных методов
+    // Настройки для разных методов оплаты
     if (method === 'stars') {
-      invoiceParams.prices = [{ label: `${amount} звезд`, amount: amount * 100 }];
-      invoiceParams.provider_token = 'Stripe TEST MODE';
+      invoiceParams.prices = [{ label: `${amount} звезд`, amount: amount * 100 }] // 1 звезда = 100 центов
+      invoiceParams.provider_token = 'Stripe TEST MODE'
     } else if (method === 'ton') {
-      invoiceParams.prices = [{ label: `${amount} TON`, amount: toNano(amount).toString() }];
-      invoiceParams.provider_token = 'Stripe TEST MODE';
+      invoiceParams.prices = [{ label: `${amount} TON`, amount: amount * 1000000000 }] // 1 TON = 10^9 нанотон
+      invoiceParams.provider_token = 'Stripe TEST MODE'
     }
 
     // Открываем платежное окно Telegram
     tg.openInvoice(invoiceParams, async (status) => {
       if (status === 'paid') {
-        try {
-          await completeDeposit(tg.initDataUnsafe.user.id, finalAmount, method);
-          await showSafeAlert(`Баланс успешно пополнен на ${finalAmount} монет!`);
-        } catch (error) {
-          console.error('Deposit completion error:', error);
-          await showSafeAlert('Платеж получен, но возникла ошибка при зачислении. Обратитесь в поддержку.');
-        }
+        await completeDeposit(tg.initDataUnsafe.user.id, totalAmount, method)
       } else {
-        await showSafeAlert('Платеж не был завершен');
+        tg.showAlert('Платеж не был завершен')
       }
-    });
+    })
 
   } catch (error) {
-    console.error('Deposit processing error:', error);
-    await showSafeAlert(error.message || 'Произошла ошибка при обработке платежа');
+    console.error('Ошибка пополнения баланса:', error)
+    tg.showAlert(error.message || 'Произошла ошибка при пополнении баланса')
   }
-}
-
-// Вспомогательные функции для безопасного показа уведомлений
-async function showSafeAlert(message) {
-  return new Promise(resolve => {
-    if (!tg.isPopupOpen()) {
-      tg.showAlert(message, resolve);
-    } else {
-      setTimeout(() => {
-        tg.showAlert(message, resolve);
-      }, 300);
-    }
-  });
-}
-
-async function showSafePopup(params) {
-  return new Promise(resolve => {
-    if (!tg.isPopupOpen()) {
-      tg.showPopup(params, resolve);
-    } else {
-      setTimeout(() => {
-        tg.showPopup(params, resolve);
-      }, 300);
-    }
-  });
 }
 
 // Завершение пополнения баланса

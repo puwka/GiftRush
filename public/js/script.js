@@ -43,30 +43,55 @@ function toNano(amount) {
   return BigInt(amount) * BigInt(1000000000)
 }
 
-// Инициализация TonConnect
-// Замените текущую функцию initTonConnect на эту:
+// Улучшенная функция инициализации TonConnect
 async function initTonConnect() {
   return new Promise(async (resolve) => {
     // 1. Проверяем, возможно SDK уже загружен
     if (window.TonConnectUI) {
       console.log('TonConnect SDK already loaded');
-      initializeTonConnectUI(resolve);
+      try {
+        initializeTonConnectUI(resolve);
+      } catch (error) {
+        console.error('TonConnect initialization error:', error);
+        resolve(false);
+      }
       return;
     }
 
-    // 2. Динамически загружаем SDK
+    // 2. Если SDK не загружен, создаем промис для ожидания загрузки
+    window.TonConnectSDKLoaded = new Promise(sdkResolve => {
+      window.resolveTonConnectLoad = sdkResolve;
+    });
+
+    // 3. Динамически загружаем SDK
     const script = document.createElement('script');
     script.src = 'https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js';
     script.onload = () => {
-      console.log('TonConnect script loaded, waiting for initialization...');
+      console.log('TonConnect script loaded');
       // Даем время на полную инициализацию SDK
-      setTimeout(() => initializeTonConnectUI(resolve), 500);
+      setTimeout(() => {
+        if (window.TonConnectUI) {
+          window.resolveTonConnectLoad();
+        } else {
+          console.error('TonConnectUI still not available after loading');
+          resolve(false);
+        }
+      }, 500);
     };
     script.onerror = () => {
       console.error('Failed to load TonConnect SDK');
       resolve(false);
     };
     document.head.appendChild(script);
+
+    // 4. Ожидаем загрузки SDK
+    try {
+      await window.TonConnectSDKLoaded;
+      initializeTonConnectUI(resolve);
+    } catch (error) {
+      console.error('Error waiting for TonConnect SDK:', error);
+      resolve(false);
+    }
   });
 }
 
@@ -77,7 +102,7 @@ function initializeTonConnectUI(callback) {
     }
 
     tonConnectUI = new window.TonConnectUI.TonConnectUI({
-      manifestUrl: 'https://gift-rush.vercel.app/tonconnect-manifest.json',
+      manifestUrl: manifestUrl,
       buttonRootId: 'ton-connect-button',
       language: 'ru'
     });
@@ -94,16 +119,12 @@ function initializeTonConnectUI(callback) {
 async function processTonConnectPayment(amount, totalAmount) {
   if (!tonConnectUI) {
     try {
-      await initTonConnect();
+      const loaded = await initTonConnect();
+      if (!loaded) {
+        throw new Error('Не удалось инициализировать TonConnect');
+      }
     } catch (e) {
       throw new Error('Не удалось инициализировать TonConnect');
-    }
-  }
-
-  if (!window.TonConnectUI || !tonConnectUI) {
-    const loaded = await initTonConnect();
-    if (!loaded) {
-      throw new Error('TonConnect не доступен. Пожалуйста, попробуйте позже.');
     }
   }
 

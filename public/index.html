@@ -10,13 +10,7 @@
         window.TonConnectSDKLoaded = new Promise(resolve => {
           window.resolveTonConnectLoad = resolve;
         });
-      </script>
-      
-      <!-- После других скриптов, но перед script.js -->
-      <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js" 
-              onload="window.resolveTonConnectLoad()"
-              onerror="console.error('TonConnect SDK load failed')"></script>
-</head>
+    </script>
 <body>
     <div class="container">
         <!-- Шапка -->
@@ -397,10 +391,12 @@
         </div>
     </div>
 
-    <!-- Переместите этот скрипт перед вашим script.js -->
-    <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- После других скриптов, но перед script.js -->
+    <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js" 
+    onload="window.resolveTonConnectLoad()"
+    onerror="console.error('TonConnect SDK load failed')"></script>
     <script type="module" src="js/script.js"></script>
 </body>
 </html>
